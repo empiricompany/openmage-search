@@ -1,4 +1,4 @@
-# MM Search for OpenMage
+# TypeSense Search for OpenMage
 
 Advanced search module for OpenMage using Typesense as search engine.
 
