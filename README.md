@@ -57,26 +57,11 @@ volumes:
 ## Installation
 
 ### Via Composer
-
-1. Add the Firegento repository to your Composer configuration:
-
-```bash
-composer config -g repositories.firegento composer https://packages.firegento.com
-```
-
-2. Install the module:
-
 ```bash
 composer require empiricompany/openmage-search
 ```
 
 This will automatically install the latest stable version of the module.
-
-### Manual Installation
-
-1. Download the latest release
-2. Extract the files to your OpenMage root directory
-3. Clear the cache
 
 ## Configuration
 
