@@ -801,6 +801,10 @@
   border-radius: 3px;
 }
 
+.ais-InfiniteHits-item img {
+  max-width: 100%;
+}
+
 .ais-InfiniteHits-loadMore,
 .ais-InfiniteHits-loadPrevious {
   display: flex;

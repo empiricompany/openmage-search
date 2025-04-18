@@ -93,7 +93,7 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
                     'category_names' => (array) $this->_getCategoryNames($product, $storeId),
                     'thumbnail' => (string) $product->getThumbnail(),
                     'thumbnail_small' => (string) $this->_getResizedImageUrl($product, 100, 100),
-                    'thumbnail_medium' => (string) $this->_getResizedImageUrl($product, 200, 200),
+                    'thumbnail_medium' => (string) $this->_getResizedImageUrl($product, 300, 300),
                 ]);
 
                 // Add additional attributes
