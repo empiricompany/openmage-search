@@ -4,6 +4,8 @@ Advanced search module for OpenMage using Typesense as search engine.
 
 ## Overview
 
+![instantsearch](https://github.com/user-attachments/assets/7b3c4210-d537-456e-9848-3207d826c025)
+
 MM Search is a module that replaces the default search engine in OpenMage with Typesense, a fast and typo-tolerant search engine. This module provides:
 
 - Instant search with autocomplete
