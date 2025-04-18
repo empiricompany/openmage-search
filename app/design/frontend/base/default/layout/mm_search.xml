@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<layout>
+    <!-- This layout updates apply only if the module is enabled, see MM_Search_Model_Observer::addLayoutHandleIfEnabled() -->
+    <mm_search_instantsearch>
+        <reference name="head">
+            <!-- <action method="addItem">
+                <type>skin_css</type>
+                <name>css/mm_search/instantsearch/theme/reset.css</name>
+            </action> -->
+            <action method="addItem">
+                <type>skin_css</type>
+                <name>css/mm_search/instantsearch/theme/satellite.css</name>
+            </action>
+            <action method="addItem">
+                <type>skin_css</type>
+                <name>css/mm_search/instantsearch.css</name>
+            </action>
+            <action method="addItem">
+                <type>skin_js</type>
+                <name>js/mm_search/instantsearch.min.js</name>
+            </action>
+            <action method="addItem">
+                <type>skin_js</type>
+                <name>js/mm_search/typesense-instantsearch-adapter.min.js</name>
+            </action>
+            <action method="addItem">
+                <type>skin_js</type>
+                <name>js/mm_search/instantsearch-custom.js</name>
+            </action>
+        </reference>
+        <reference name="header">
+            <remove name="top.search" />
+            <block type="mm_search/instantsearch" name="mm_search.search" as="topSearch" template="mm/search/instantsearch.phtml"/>
+        </reference>
+    </mm_search_instantsearch>
+</layout>

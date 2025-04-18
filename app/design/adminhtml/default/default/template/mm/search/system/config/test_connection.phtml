@@ -1,0 +1,54 @@
+<?php
+/**
+ * Test connection button template
+ */
+?>
+<script type="text/javascript">
+//<![CDATA[
+    function testTypesenseConnection() {
+        var elem = $('mm_search_connection_test_connection');
+        
+        new Ajax.Request('<?php echo $this->getAjaxUrl() ?>', {
+            method: 'post',
+            parameters: {
+                form_key: FORM_KEY,
+                api_key: $('mm_search_connection_api_key').getValue(),
+                host: $('mm_search_connection_host').getValue(),
+                port: $('mm_search_connection_port').getValue(),
+                protocol: $('mm_search_connection_protocol').getValue()
+            },
+            onSuccess: function(transport) {
+                var response = transport.responseText.evalJSON();
+                
+                if (response.success) {
+                    elem.removeClassName('fail').addClassName('success');
+                } else {
+                    elem.removeClassName('success').addClassName('fail');
+                }
+                
+                elem.update(response.message);
+            }
+        });
+    }
+//]]>
+</script>
+
+<?php echo $this->getButtonHtml() ?>
+<span class="mm-connection-result" id="mm_search_connection_test_connection"></span>
+
+<style type="text/css">
+    .mm-connection-result {
+        display: inline-block;
+        margin-left: 15px;
+        padding: 5px 10px;
+        border-radius: 3px;
+    }
+    .mm-connection-result.success {
+        background-color: #d8ffca;
+        color: #3d6611;
+    }
+    .mm-connection-result.fail {
+        background-color: #faebe7;
+        color: #df280a;
+    }
+</style>

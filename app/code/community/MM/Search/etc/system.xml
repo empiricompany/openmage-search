@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<config>
+    <sections>
+        <mm_search translate="label" module="mm_search">
+            <label>MM Search</label>
+            <tab>catalog</tab>
+            <frontend_type>text</frontend_type>
+            <sort_order>400</sort_order>
+            <show_in_default>1</show_in_default>
+            <show_in_website>1</show_in_website>
+            <show_in_store>1</show_in_store>
+            <groups>
+                <general translate="label">
+                    <label>General Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>10</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label">
+                            <label>Enable MM Search</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </enabled>
+                    </fields>
+                </general>
+                <connection translate="label">
+                    <label>Typesense Connection Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>20</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <api_key translate="label">
+                            <label>Admin API Key</label>
+                            <frontend_type>password</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>
+                            <![CDATA[
+                                API Key for index management and data operations.<br />
+                                <strong>Note: This key is not used for frontend search operations.</strong>ì
+                            ]]>
+                            </comment>
+                        </api_key>
+                        <search_only_api_key translate="label">
+                            <label>Search-Only API Key</label>
+                            <frontend_type>password</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>
+                            <![CDATA[
+                                API Key for frontend search operations.<br />
+                                <strong>Note: This key is not used for index management and data operations.</strong>
+                            ]]>
+                            </comment>
+                        </search_only_api_key>
+                        <proxy translate="label">
+                            <label>Proxy frontend request</label>
+                            <comment>
+                            <![CDATA[
+                                Use this option to proxy frontend requests through your Website server to Typesense.<br />
+                                Recommended when using a self-hosted Typesense server without SSL.<br />
+                                <strong>Note: Backend operations will still connect directly to Typesense.</strong>
+                            ]]>
+                            </comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </proxy>
+                        <protocol translate="label">
+                            <label>Protocol</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>mm_search/system_config_source_protocol</source_model>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </protocol>
+                        <host translate="label">
+                            <label>Host</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>
+                            <![CDATA[
+                                If you self-host inside docker use host.docker.internal and enable the proxy option.<br />
+                                If you self-host on a remote server, use the public IP or domain name.<br />
+                            ]]>
+                            </comment>
+                        </host>
+                        <port translate="label">
+                            <label>Port</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </port>
+                        <collection_name translate="label">
+                            <label>Collection Name</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>60</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>
+                            <![CDATA[
+                                Assign different collection names to different stores.<br />
+                            ]]>
+                            </comment>
+                        </collection_name>
+                        <!-- <test_connection translate="label button">
+                            <label>Test Connection</label>
+                            <frontend_type>button</frontend_type>
+                            <frontend_model>mm_search/adminhtml_system_config_testConnection</frontend_model>
+                            <sort_order>70</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </test_connection> -->
+                    </fields>
+                </connection>
+                <instantsearch translate="label">
+                    <label>Instant Search Settings</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>30</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <cache_lifetime translate="label">
+                            <label>Cache Results For Seconds</label>
+                            <comment>
+                            <![CDATA[
+                                cacheSearchResultsForSeconds: Cache the results for a given amount of seconds.<br />
+                            ]]>
+                            </comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </cache_lifetime>
+                    </fields>
+                </instantsearch>
+            </groups>
+        </mm_search>
+    </sections>
+</config>

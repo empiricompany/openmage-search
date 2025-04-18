@@ -1,0 +1,93 @@
+#search_mini_form label {
+    display: block !important;
+}
+
+.aa-Form {
+    position: relative;
+}
+
+.aa-Form .aa-InputWrapperPrefix {
+    position: absolute;
+    right: 0;
+}
+
+.aa-Form .aa-InputWrapperPrefix .aa-SubmitButton {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+}
+
+.aa-Form .aa-InputWrapper .aa-Input {
+    border-radius: 2px;
+    border: 1px solid #c0c0c0;
+    background: #fff;
+    font-size: 15px;
+    height: 40px;
+}
+
+.aa-Form .aa-InputWrapper .aa-Input[type=search]::-ms-clear {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.aa-Form .aa-InputWrapper .aa-Input[type=search]::-ms-reveal {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.aa-Form .aa-InputWrapper .aa-Input[type="search"]::-webkit-search-decoration,
+.aa-Form .aa-InputWrapper .aa-Input[type="search"]::-webkit-search-cancel-button,
+.aa-Form .aa-InputWrapper .aa-Input[type="search"]::-webkit-search-results-button,
+.aa-Form .aa-InputWrapper .aa-Input[type="search"]::-webkit-search-results-decoration {
+    display: none;
+}
+
+.aa-Form .aa-InputWrapperSuffix {
+    position: absolute;
+    right: 40px;
+    top: 0;
+    outline: 1px solid;
+    outline-offset: -1px;
+    outline-color: #c0c0c0;
+}
+
+.aa-Form .aa-InputWrapperSuffix .aa-ClearButton {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+}
+
+.aa-Form .aa-InputWrapperSuffix .aa-ClearButton[hidden] {
+    display: none;
+}
+
+.aa-Panel {
+    position: absolute;
+    background: #fff;
+    padding: 12px 8px;
+    margin-top: 6px;
+    border: 1px solid #c0c0c0;
+    border-radius: 2px;
+}
+
+.aa-Panel .aa-List .aa-Item {
+    margin: 5px 0;
+}
+
+.aa-Panel .aa-List .aa-Item a {
+    color: #636363;
+}
+
+.aa-Panel .aa-List .aa-Item a mark {
+    padding: 3px 0;
+}

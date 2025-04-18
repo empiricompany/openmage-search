@@ -1,0 +1,35 @@
+{
+    "name": "empiricompany/openmage-search",
+    "description": "Advanced search module for OpenMage using Typesense",
+    "type": "magento-module",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tony",
+            "email": "info@magemega.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "magento-hackathon/magento-composer-installer": "*",
+        "typesense/typesense-php": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "MM\\Search\\": "src/"
+        }
+    },
+    "extra": {
+        "map": [
+            ["app/code/community/MM/Search", "app/code/community/MM/Search"],
+            ["app/etc/modules/MM_Search.xml", "app/etc/modules/MM_Search.xml"],
+            ["app/design/frontend/base/default/layout/mm_search.xml", "app/design/frontend/base/default/layout/mm_search.xml"],
+            ["app/design/frontend/base/default/template/mm/search", "app/design/frontend/base/default/template/mm/search"],
+            ["app/design/adminhtml/default/default/template/mm/search", "app/design/adminhtml/default/default/template/mm/search"],
+            ["skin/frontend/base/default/css/mm_search", "skin/frontend/base/default/css/mm_search"],
+            ["skin/frontend/base/default/js/mm_search", "skin/frontend/base/default/js/mm_search"]
+        ]
+    },
+    "minimum-stability": "stable"
+}

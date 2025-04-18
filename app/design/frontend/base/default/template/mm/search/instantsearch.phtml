@@ -1,0 +1,66 @@
+<?php
+/** @var MM_Search_Block_Searchbox $this */
+
+/** @var MM_Search_Helper_Data $_helper */
+$_helper = $this->helper('mm_search');
+?>
+<script>
+    window.typesenseConfig = {
+        apiKey: '<?php echo $_helper->getSearchOnlyApiKey() ?>',
+        <?php if($_helper->isProxyEnabled()) : ?>
+            protocol: window.location.protocol.replace(':', ''),
+            host: window.location.hostname,
+            port: window.location.port,
+            path: '<?php echo $this->getProxyPath() ?>',
+        <?php else : ?>
+            protocol: '<?php echo $_helper->getProtocol() ?>',
+            host: '<?php echo $_helper->getHost() ?>',
+            port: '<?php echo $_helper->getPort() ?>',
+            path: '',
+        <?php endif; ?>
+        collectionName: '<?php echo $_helper->getCollectionName() ?>',
+        storeCode: '<?php echo Mage::app()->getStore()->getCode() ?>',
+        facetBy: <?php echo json_encode($this->getFacetFields()) ?>,
+        cacheSearchResultsForSeconds: <?php echo $_helper->getCacheLifetime() ?>,
+    };
+</script>
+
+<div class="typesense-search-wrapper">
+    <div id="search_mini_form">
+        <input type="text" id="search" name="q" class="input-text" placeholder="<?php echo $this->__('Search entire store here...') ?>" />
+    </div>
+
+    <!-- Overlay di ricerca a tutto schermo -->
+    <div id="typesense-overlay" class="typesense-overlay">
+        <div class="typesense-overlay-header">
+            <div id="typesense-searchbox"></div>
+            <button class="typesense-close-btn">&times;</button>
+        </div>
+        
+        <div class="typesense-overlay-content">
+            
+            <div class="typesense-top-bar">
+                <div id="typesense-stats"></div>
+                <div id="typesense-sort-by"></div>
+            </div>
+            
+            <div class="typesense-main-content">
+                <div class="typesense-facets">
+                    <h3><?php echo $this->__('Category'); ?></h3>
+                    <div id="typesense-categories"></div>
+                    
+                    <?php foreach ($this->getFacetFields() as $value) : ?>
+                        <h3><?php echo strtoupper($value); ?></h3>
+                        <div id="typesense-<?php echo $value ?>"></div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <div class="typesense-results">
+                    <div id="typesense-hits"></div>
+                    <!-- Rimosso il container per la paginazione poiché ora utilizziamo l'infinite scroll -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
