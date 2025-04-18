@@ -1,6 +1,6 @@
 # TypeSense Search for OpenMage
 
-Advanced search module for OpenMage using Typesense as search engine.
+Advanced search module for OpenMage using Typesense as search engine and instantsearch.js for frontend.
 
 ## Overview
 
