@@ -31,7 +31,7 @@ composer config -g repositories.firegento composer https://packages.firegento.co
 2. Install the module:
 
 ```bash
-composer require mm/openmage-search
+composer require empiricompany/openmage-search
 ```
 
 This will automatically install the latest stable version of the module.
@@ -54,8 +54,7 @@ This will automatically install the latest stable version of the module.
    - Protocol
    - Path
    - Collection Name
-4. Test the connection
-5. Save the configuration
+4. Save the configuration
 
 ## Indexing
 
