@@ -20,6 +20,40 @@ MM Search is a module that replaces the default search engine in OpenMage with T
 - PHP 7.4 or higher
 - Typesense server (self-hosted or cloud)
 
+### docker-compose.yml example for self-host a TypeSense instance with a dashboard
+```yml
+services:
+  typesense:
+    image: typesense/typesense:27.1
+    ports:
+      - "8108:8108"
+    environment:
+      TYPESENSE_DATA_DIR: /data
+      TYPESENSE_API_KEY: S3CR3T
+      TYPESENSE_API_ALLOW_ORIGINS: "*"
+    healthcheck:
+      test: ["CMD-SHELL", "exit 0"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - typesense-data:/data
+
+  typesense-dashboard:
+    image: bfritscher/typesense-dashboard
+    ports:
+      - "5002:80"  # Puoi cambiare la porta se necessario
+    environment:
+      TYPESENSE_API_URL: "http://typesense:8108"  
+      TYPESENSE_API_KEY: "S3CR3T"
+    depends_on:
+      - typesense
+    restart: always
+
+volumes:
+  typesense-data:
+```
+
 ## Installation
 
 ### Via Composer
