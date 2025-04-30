@@ -29,6 +29,11 @@
                     <fulltext>MM_Search_Model_Resource_Fulltext</fulltext>
                 </rewrite>
             </catalogsearch_resource>
+            <catalogsearch>
+                <rewrite>
+                    <indexer_fulltext>MM_Search_Model_Indexer_Fulltext</indexer_fulltext>
+                </rewrite>
+            </catalogsearch>
         </models>
     </global>
     <frontend>
@@ -100,6 +105,11 @@
         </acl>
     </adminhtml>
     <default>
+        <catalog>
+            <search>
+                <engine>mm_search</engine>
+            </search>
+        </catalog>
         <mm_search>
             <general>
                 <enabled>0</enabled>
