@@ -29,11 +29,11 @@
                     <fulltext>MM_Search_Model_Resource_Fulltext</fulltext>
                 </rewrite>
             </catalogsearch_resource>
-            <catalogsearch>
+            <!-- <catalogsearch>
                 <rewrite>
                     <indexer_fulltext>MM_Search_Model_Indexer_Fulltext</indexer_fulltext>
                 </rewrite>
-            </catalogsearch>
+            </catalogsearch> -->
         </models>
     </global>
     <frontend>
