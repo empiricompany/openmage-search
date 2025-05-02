@@ -8,7 +8,7 @@ class MM_Search_Model_Observer
      * @var MM_Search_Helper_Data
      */
     protected $_helper;
-    
+
     public function __construct()
     {
         $this->_helper = Mage::helper('mm_search');
@@ -16,13 +16,13 @@ class MM_Search_Model_Observer
 
     /**
      * Add layout handle if module is enabled
-     * 
+     *
      * @param Varien_Event_Observer $observer
      * @return void
      */
     public function addLayoutHandleIfEnabled(Varien_Event_Observer $observer)
     {
-        
+
         if ($this->_helper->isEnabled()) {
             $update = $observer->getEvent()->getLayout()->getUpdate();
             $update->addHandle('mm_search_instantsearch');
@@ -48,7 +48,7 @@ class MM_Search_Model_Observer
             return;
         }
 
-        try {    
+        try {
             /**
             * @var MM_Search_Model_Api $_modelApi
             */

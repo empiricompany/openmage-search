@@ -2,7 +2,15 @@
 /**
  * Typesense API model
  */
+use Http\Client\Curl\Client as CurlClient;
+use Http\Discovery\Psr17FactoryDiscovery;
+use CmsIg\Seal\Adapter\Typesense\TypesenseAdapter;
+use CmsIg\Seal\Engine;
 use Typesense\Client;
+
+use CmsIg\Seal\Schema\Field;
+use CmsIg\Seal\Schema\Index;
+use CmsIg\Seal\Schema\Schema;
 
 class MM_Search_Model_Api
 {
@@ -100,17 +108,70 @@ class MM_Search_Model_Api
      */
     public function getClient($apiKey, $host, $port, $protocol)
     {
-        return new Client([
-            'api_key' => $apiKey,
-            'nodes' => [
-                [
-                    'host' => $host,
-                    'port' => $port,
-                    'protocol' => $protocol
-                ]
-            ],
-            'connection_timeout_seconds' => 5
+        return new Client(
+            [
+               'api_key' => $apiKey,
+                'nodes' => [
+                    [
+                        'host' => $host,
+                        'port' => $port,
+                        'protocol' => $protocol
+                    ]
+                ],
+               'client' => new CurlClient(Psr17FactoryDiscovery::findResponseFactory(), Psr17FactoryDiscovery::findStreamFactory()),
+            ]
+       );
+    }
+
+    public function getEngine(): Engine
+    {
+        return new Engine(
+            new TypesenseAdapter($this->getAdminClient()),
+            $this->getSchema(),
+        );
+    }
+
+    protected function getSchema()
+    {
+        $collectionName = $this->getCollectionName();
+        $fields = [
+            'id' => new Field\IdentifierField('id'),
+            'url_key' => new Field\TextField('url_key'),
+            'request_path' => new Field\TextField('request_path'),
+            'category_names' => new Field\TextField('category_names', multiple: true, filterable: true),
+            'thumbnail' => new Field\TextField('thumbnail'),
+            'thumbnail_small' => new Field\TextField('thumbnail_small'),
+            'thumbnail_medium' => new Field\TextField('thumbnail_medium'),
+        ];
+
+        // Add additional fields for searchable attributes
+        /** @var Mage_Catalog_Model_Resource_Product_Attribute_Collection $attributeCollection */
+        $attributeCollection = Mage::getResourceModel('catalog/product_attribute_collection');
+        $attributeCollection->addIsSearchableFilter();
+        foreach ($attributeCollection as $attribute) {
+            $multiple = false;
+            $filterable = false;
+            if ($attribute->getFrontendInput() === 'multiselect') {
+                $multiple = true;
+            }
+            if ($attribute->getIsFilterableInSearch()) {
+                $filterable = true;
+            }
+            $code = $attribute->getAttributeCode();
+            if ($attribute->getBackendType() === 'decimal') {
+                $field = new Field\FloatField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: true, searchable: false);
+            } elseif (in_array($code, ['status', 'visibility'])) {
+                $field = new Field\IntegerField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: true, searchable: false);
+            } else {
+                $field = new Field\TextField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: true, searchable: true);
+
+            }
+            $fields[$attribute->getAttributeCode()] = $field;
+        }
+        $schema = new Schema([
+            $collectionName => new Index($collectionName, $fields),
         ]);
+        return $schema;
     }
     
     /**
@@ -126,84 +187,16 @@ class MM_Search_Model_Api
     public function updateSchema(Mage_Catalog_Model_Resource_Eav_Attribute $attribute, $collectionName = null)
     {
         if ($collectionName === null) {
-            $collectionName = $this->collectionName;
+            $collectionName = $this->getCollectionName();
         }
+        $reindexProviders = [
+            new MM_Search_Model_ProductReindexProvider($this->storeId)
+        ];
+        $reindexConfig = \CmsIg\Seal\Reindex\ReindexConfig::create()
+            ->withIndex($collectionName)
+            ->withBulkSize(100)
+            ->withDropIndex(true);
         
-        $_attributeCode = $attribute->getAttributeCode();
-        
-        /**
-         * @var Client $client
-         */
-        $client = $this->getAdminClient();
-
-        // Drop field if it exists
-        $collectionFields = $client->collections[$collectionName]->retrieve();
-        $collectionFields = $collectionFields['fields'];
-        foreach ($collectionFields as $field) {
-            if ($field['name'] === $_attributeCode) {
-                $this->dropFieldFromCollection($attribute, $collectionName);
-                /* Mage::getSingleton('adminhtml/session')->addSuccess(
-                    Mage::helper('mm_search')->__('Field %s has been dropped from the collection %s', $_attributeCode, $collectionName)
-                ); */
-            }
-        }
-
-        // Add field if it is searchable
-        if ($attribute->getIsSearchable()) {
-            $client->collections[$collectionName]->update([
-                'fields' => [
-                    $this->getAttributeSchema($attribute)
-                ]
-            ]);
-            /* Mage::getSingleton('adminhtml/session')->addSuccess(
-                Mage::helper('mm_search')->__('Field %s has been added to the collection %s', $_attributeCode, $collectionName)
-            ); */
-        }
-    }
-
-    /**
-     * Get schema field from attribute
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute
-     * @return array
-     */
-    public function getAttributeSchema(Mage_Catalog_Model_Resource_Eav_Attribute $attribute)
-    {
-        $code = $attribute->getAttributeCode();
-        $field = ['name' => $code];
-        if ($attribute->getBackendType() === 'decimal') {
-            $field['type'] = 'float';
-        } elseif (in_array($code, ['status', 'visibility'])) {
-            $field['type'] = 'int32';
-        } else {
-            $field['type'] = 'string';
-            if ($attribute->getFrontendInput() === 'select' || $attribute->getFrontendInput() === 'multiselect') {
-                $field['facet'] = true;
-            }
-        }
-        if ($attribute->getIsFilterableInSearch()) {
-            $field['facet'] = true;
-        }
-        $field['optional'] = true;
-        return $field;
-    }
-
-    /**
-     * Drop field from collection
-     * @param string $fieldName
-     * @return array
-     */
-    public function dropFieldFromCollection(Mage_Catalog_Model_Resource_Eav_Attribute $attribute, $collectionName = null)
-    {
-        if ($collectionName === null) {
-            $collectionName = $this->collectionName;
-        }
-        return $this->getAdminClient()->collections[$collectionName]->update([
-            'fields' => [
-                [
-                    'name' => $attribute->getAttributeCode(),
-                    'drop' => true
-                ]
-            ]
-        ]);   
+        return $this->getEngine()->reindex($reindexProviders, $reindexConfig);
     }
 }

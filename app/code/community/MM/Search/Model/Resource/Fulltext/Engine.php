@@ -2,6 +2,7 @@
 /**
  * Typesense search engine implementation
  */
+
 class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_Resource_Fulltext_Engine
 {
     /**
@@ -50,21 +51,10 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
             return parent::saveEntityIndexes($storeId, $entityIndexes, $entityType);
         }
         try {
-            $client = $this->_apiModel->setStoreId($storeId)->getAdminClient();
             $collectionName = $this->_helper->getCollectionName($storeId);
-
-            // Check if collection exists, if not create it
-            $collections = $client->collections->retrieve();
-            $collectionExists = false;
-            foreach ($collections as $collection) {
-                if ($collection['name'] === $collectionName) {
-                    $collectionExists = true;
-                    break;
-                }
-            }
-
-            if (!$collectionExists) {
-                $this->_createCollection($client, $collectionName, $storeId);
+            $engine = $this->_apiModel->setStoreId($storeId)->getEngine();
+            if ($engine->existIndex($this->_helper->getCollectionName($storeId)) === false) {
+                $this->_createCollection($storeId);
             }
 
             $productCollection = Mage::getResourceModel('catalog/product_collection')
@@ -110,15 +100,12 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
                         $payload->setData($code, (string) $product->getData($code));
                     }
                 }
-                $client->collections[$collectionName]->documents->upsert($payload->getData());
+                $engine->saveDocument($collectionName, $payload->getData());
 
-            }
+            }            
             return $this;
         } catch (Exception $e) {
-            dd($e->getMessage());
             Mage::logException($e);
-            // Fallback to default engine
-            return parent::saveEntityIndexes($storeId, $entityIndexes, $entityType);
         }
     }
 
@@ -135,28 +122,16 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
         if (!$this->_helper->isEnabled($storeId)) {
             return parent::cleanIndex($storeId, $entityId, $entity);
         }
-
-        try {
-            $client = $this->_apiModel->setStoreId($storeId)->getAdminClient();
-            $collectionName = $this->_helper->getCollectionName($storeId);
-
-            // Delete document from Typesense
-            try {
-                if ($entityId) {
-                    $client->collections[$collectionName]->documents[(string)$entityId]->delete();
-                } else {
-                    $client->collections[$collectionName]->documents->delete(['filter_by' => 'id:>0']);
-                }
-            } catch (Exception $e) {
-                Mage::logException($e);
-                return parent::cleanIndex($storeId, $entityId, $entity);
-            }
+        if ($entityId === null) {
             return $this;
+        }
+        try {
+            $engine = $this->_apiModel->setStoreId($storeId)->getEngine();
+            $engine->deleteDocument($this->_helper->getCollectionName($storeId), $entityId);
         } catch (Exception $e) {
             Mage::logException($e);
-            // Fallback to default engine
-            return parent::cleanIndex($storeId, $entityId, $entity);
         }
+        return $this;
     }
 
     /**
@@ -165,7 +140,7 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      * @param Mage_CatalogSearch_Model_Query $query
      * @return array
      */
-    public function getIdsByQuery($query)
+    /* public function getIdsByQuery($query)
     {
         $storeId = Mage::app()->getStore()->getId();
         if (!$this->_helper->isEnabled($storeId)) {
@@ -201,48 +176,28 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
             // Fallback to default engine
             return parent::getIdsByQuery($query);
         }
-    }
+    } */
 
     /**
      * Create Typesense collection
      *
-     * @param Typesense\Client $client
-     * @param string $collectionName
      * @param int $storeId
      * @return void
      */
-    protected function _createCollection($client, $collectionName, $storeId)
+    protected function _createCollection($storeId)
     {
-        $schema = [
-            'name' => $collectionName,
-            'fields' => [
-                ['name' => 'id', 'type' => 'string'],
-                ['name' => 'url_key', 'type' => 'string'],
-                ['name' => 'request_path', 'type' => 'string'],
-                ['name' => 'category_names', 'type' => 'string[]', 'facet' => true],
-                ['name' => 'thumbnail', 'type' => 'string'],
-                ['name' => 'thumbnail_small', 'type' => 'string'],
-                ['name' => 'thumbnail_medium', 'type' => 'string']
-            ],
-        ];
-
-        // Add additional fields for searchable attributes
-        /** @var Mage_Catalog_Model_Resource_Product_Attribute_Collection $attributeCollection */
-        $attributeCollection = Mage::getResourceModel('catalog/product_attribute_collection');
-        $attributeCollection->addIsSearchableFilter();
-        foreach ($attributeCollection as $attribute) {
-            $schema['fields'][] = $this->_apiModel->getAttributeSchema($attribute);
-        }
-        $client->collections->create($schema);
+        $this->_apiModel->setStoreId($storeId)->getEngine()->createSchema();
     }
 
+    
     /**
      * Get resized image URL
      *
-     * @param Mage_Catalog_Model_Product $product Prodotto
-     * @param int $width Larghezza desiderata
-     * @param int $height Altezza desiderata
-     * @return string URL dell'immagine ridimensionata
+     * @param Mage_Catalog_Model_Product $product Product
+     * @param int $width Width desired
+     * @param int $height Height desired
+     * @return string Resized image URL
+     * @throws Exception
      */
     protected function _getResizedImageUrl(Mage_Catalog_Model_Product $product, $width, $height)
     {
@@ -275,5 +230,5 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
             ->addAttributeToSelect('name')
             ->addAttributeToFilter('is_active', true);
         return $categoryCollection->getColumnValues('name');
-    }
+    }   
 }
