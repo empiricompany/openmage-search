@@ -7,7 +7,7 @@ class MM_Search_Model_Resource_Fulltext extends Mage_CatalogSearch_Model_Resourc
     /**
      * Initialize connection and define main table
      */
-    protected function _construct()
+    protected function _construct(): void
     {
         parent::_construct();
         $this->_engine = Mage::getResourceSingleton('mm_search/fulltext_engine');
@@ -18,7 +18,7 @@ class MM_Search_Model_Resource_Fulltext extends Mage_CatalogSearch_Model_Resourc
      *
      * @return MM_Search_Model_Resource_Fulltext_Engine
      */
-    public function getEngine()
+    public function getEngine(): MM_Search_Model_Resource_Fulltext_Engine
     {
         return $this->_engine;
     }

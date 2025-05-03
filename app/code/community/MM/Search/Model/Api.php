@@ -8,7 +8,6 @@ use CmsIg\Seal\Adapter\Typesense\TypesenseAdapter;
 use CmsIg\Seal\Engine;
 use Typesense\Client;
 
-use CmsIg\Seal\Schema\Field;
 use CmsIg\Seal\Schema\Index;
 use CmsIg\Seal\Schema\Schema;
 
@@ -45,7 +44,7 @@ class MM_Search_Model_Api
      * @param int|null $storeId
      * @return MM_Search_Model_Api
      */
-    public function setStoreId($storeId = null)
+    public function setStoreId($storeId = null): static
     {
         $this->storeId = $storeId;
         $this->collectionName = $this->_helper->getCollectionName($storeId);
@@ -87,7 +86,7 @@ class MM_Search_Model_Api
      *
      * @return Client
      */
-    public function getAdminClient()
+    public function getAdminClient(): Client|null
     {
         if ($this->client === null) {
             $apiKey = $this->_helper->getAdminApiKey($this->storeId);
@@ -106,7 +105,7 @@ class MM_Search_Model_Api
      *
      * @return Client
      */
-    public function getSearchClient()
+    public function getSearchClient(): Client
     {
         $apiKey = $this->_helper->getSearchOnlyApiKey($this->storeId);
         $host = $this->_helper->getHost($this->storeId);
@@ -126,7 +125,7 @@ class MM_Search_Model_Api
      * @param string $path
      * @return Client
      */
-    public function getClient($apiKey, $host, $port, $protocol)
+    public function getClient($apiKey, $host, $port, $protocol): Client
     {
         return new Client(
             [
@@ -151,50 +150,13 @@ class MM_Search_Model_Api
         );
     }
 
-    protected function getSchema()
+    protected function getSchema(): Schema
     {
         $collectionName = $this->getCollectionName();
-        $fields = [
-            'id' => new Field\IdentifierField('id'),
-            'url_key' => new Field\TextField('url_key'),
-            'request_path' => new Field\TextField('request_path'),
-            'category_names' => new Field\TextField('category_names', multiple: true, filterable: true),
-            'thumbnail' => new Field\TextField('thumbnail'),
-            'thumbnail_small' => new Field\TextField('thumbnail_small'),
-            'thumbnail_medium' => new Field\TextField('thumbnail_medium'),
-        ];
-
-        // Add additional fields for searchable attributes
-        /** @var Mage_Catalog_Model_Resource_Product_Attribute_Collection $attributeCollection */
-        $attributeCollection = Mage::getResourceModel('catalog/product_attribute_collection');
-        $attributeCollection->addIsSearchableFilter();
-        foreach ($attributeCollection as $attribute) {
-            $multiple = false;
-            $filterable = false;
-            if ($attribute->getFrontendInput() === 'multiselect') {
-                $multiple = true;
-            }
-            if ($attribute->getIsFilterableInSearch()) {
-                $filterable = true;
-            }
-            // TODO: Add support for sortable attributes, this seems to be not working in Typesense
-            if ($attribute->getUsedForSortBy()) {
-                $sortable = true;
-            }
-            $code = $attribute->getAttributeCode();
-            if ($attribute->getBackendType() === 'decimal') {
-                $field = new Field\FloatField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: $sortable, searchable: false);
-            } elseif (in_array($code, ['status', 'visibility'])) {
-                $field = new Field\IntegerField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: $sortable, searchable: false);
-            } else {
-                $field = new Field\TextField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: $sortable, searchable: true);
-            }
-            $fields[$attribute->getAttributeCode()] = $field;
-        }
-        $schema = new Schema([
-            $collectionName => new Index($collectionName, $fields),
-        ]);
-        return $schema;
+        
+        // Use schema helper to get complete schema
+        $schemaHelper = Mage::helper('mm_search/schema');
+        return $schemaHelper->getCompleteSchema($collectionName);
     }
 
     public function reindex($dropIndex = false): static
