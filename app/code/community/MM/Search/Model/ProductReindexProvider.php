@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 use CmsIg\Seal\Reindex\ReindexConfig;
 use CmsIg\Seal\Reindex\ReindexProviderInterface;
 
@@ -20,10 +23,10 @@ class MM_Search_Model_ProductReindexProvider implements ReindexProviderInterface
 
     public function total(): ?int
     {
-        return $this->getCollection()->count();
+        return null;
     }
 
-    protected function getCollection($entity_ids = null): Mage_Catalog_Model_Resource_Collection_Abstract|Mage_Catalog_Model_Resource_Product_Collection
+    protected function getCollection($entity_ids = []): Mage_Catalog_Model_Resource_Collection_Abstract|Mage_Catalog_Model_Resource_Product_Collection
     {
         if (!$this->_collection) {
             $this->_collection = Mage::getResourceModel('catalog/product_collection')
@@ -34,7 +37,8 @@ class MM_Search_Model_ProductReindexProvider implements ReindexProviderInterface
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH
                 ]);
-            if ($entity_ids) {
+            
+            if (!empty($entity_ids)) {
                 $this->_collection->addFieldToFilter('entity_id', ['in' => $entity_ids]);
             }
         }
