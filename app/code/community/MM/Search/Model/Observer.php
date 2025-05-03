@@ -45,7 +45,7 @@ class MM_Search_Model_Observer
         $isSearchableChanged = $attribute->getIsSearchable() != $attribute->getOrigData('is_searchable');
         $isFilterableChanged = $attribute->getIsFilterableInSearch() != $attribute->getOrigData('is_filterable_in_search');
         if (!$isSearchableChanged && !$isFilterableChanged) {
-            return;
+            #return;
         }
 
         try {
