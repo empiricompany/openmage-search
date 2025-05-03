@@ -1,7 +1,7 @@
 <?php
-/**
- * Typesense API model
- */
+
+declare(strict_types=1);
+
 use Http\Client\Curl\Client as CurlClient;
 use Http\Discovery\Psr17FactoryDiscovery;
 use CmsIg\Seal\Adapter\Typesense\TypesenseAdapter;
@@ -32,6 +32,11 @@ class MM_Search_Model_Api
      * @var MM_Search_Helper_Data
      */
     protected $_helper;
+
+    /**
+     * Bulk size for reindexing
+     */
+    private int $_bulkSize = 100;
     
     public function __construct()
     {
@@ -159,20 +164,28 @@ class MM_Search_Model_Api
         return $schemaHelper->getCompleteSchema($collectionName);
     }
 
-    public function reindex($dropIndex = false): static
+    public function reindex($dropIndex = false, $identifiers = []): static
     {
         $collectionName = $this->getCollectionName();
+        if (Mage::registry("MM_SEARCH_REINDEX_". $collectionName)) {
+            return $this;
+        }
         $reindexProviders = [
             new MM_Search_Model_ProductReindexProvider($this->storeId)
         ];
         $reindexConfig = \CmsIg\Seal\Reindex\ReindexConfig::create()
             ->withIndex($collectionName)
-            ->withBulkSize(100)
+            ->withBulkSize($this->_bulkSize)
+            ->withIdentifiers($identifiers)
             ->withDropIndex($dropIndex);
         
         $this->getEngine()->reindex($reindexProviders, $reindexConfig, function ($index, $count, $total) {
-            Mage::log("Reindexing {$index}: {$count}/{$total}");
+            //Mage::log( sprintf("Reindexing %s: %s/%s", $index, $count, $total));
         });
+        Mage::register("MM_SEARCH_REINDEX_". $collectionName, true);
+        Mage::getSingleton('adminhtml/session')->addSuccess(
+            Mage::helper('mm_search')->__('Collection "%s" was reindex.', $collectionName)
+        );
         return $this;
     }
 

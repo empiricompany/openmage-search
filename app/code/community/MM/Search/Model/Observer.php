@@ -1,7 +1,7 @@
 <?php
-/**
- * MM Search Observer
- */
+
+declare(strict_types=1);
+
 class MM_Search_Model_Observer
 {
     /**
@@ -18,9 +18,8 @@ class MM_Search_Model_Observer
      * Add layout handle if module is enabled
      *
      * @param Varien_Event_Observer $observer
-     * @return void
      */
-    public function addLayoutHandleIfEnabled(Varien_Event_Observer $observer)
+    public function addLayoutHandleIfEnabled(Varien_Event_Observer $observer): void
     {
 
         if ($this->_helper->isEnabled()) {
@@ -32,7 +31,6 @@ class MM_Search_Model_Observer
     /**
      * Synchronize schema with attribute
      * @param  Varien_Event_Observer $observer
-     * @return void
      */
     public function syncSchemaWithAttribute(Varien_Event_Observer $observer): void
     {
@@ -45,7 +43,7 @@ class MM_Search_Model_Observer
         $isSearchableChanged = $attribute->getIsSearchable() != $attribute->getOrigData('is_searchable');
         $isFilterableChanged = $attribute->getIsFilterableInSearch() != $attribute->getOrigData('is_filterable_in_search');
         if (!$isSearchableChanged && !$isFilterableChanged) {
-            #return;
+            return;
         }
 
         try {
@@ -63,7 +61,6 @@ class MM_Search_Model_Observer
                 $_modelApi->setStoreId($store->getId())->updateSchema($attribute);
             }
         } catch (Exception $e) {
-            dd($e->getMessage());
             Mage::logException($e);
         }
     }

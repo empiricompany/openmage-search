@@ -1,7 +1,7 @@
 <?php
-/**
- * MM Search Helper
- */
+
+declare(strict_types=1);
+
 class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
 {
     const XML_PATH_SEARCH_ONLY_API_KEY = 'mm_search/connection/search_only_api_key';
@@ -19,9 +19,8 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Check if module is enabled
      *
      * @param int|null $storeId Store ID
-     * @return bool
      */
-    public function isEnabled($storeId = null)
+    public function isEnabled($storeId = null): bool
     {
         return Mage::getStoreConfigFlag(self::XML_PATH_ENABLED, $storeId);
     }
@@ -29,18 +28,16 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get search only API key
      *
      * @param int|null $storeId Store ID
-     * @return string
      */
-    public function getSearchOnlyApiKey($storeId = null)
+    public function getSearchOnlyApiKey($storeId = null): string
     {
         return Mage::getStoreConfig(self::XML_PATH_SEARCH_ONLY_API_KEY, $storeId);
     }
 
     /**
      * Check if proxy mode is enabled
-     * 
      */
-    public function isProxyEnabled($storeId = null)
+    public function isProxyEnabled($storeId = null): bool
     {
         return Mage::getStoreConfigFlag(self::XML_PATH_PROXY, $storeId);
     }
@@ -49,9 +46,8 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get admin API key
      *
      * @param int|null $storeId Store ID
-     * @return string
      */
-    public function getAdminApiKey($storeId = null)
+    public function getAdminApiKey($storeId = null): string
     {
         return Mage::getStoreConfig(self::XML_PATH_ADMIN_API_KEY, $storeId);
     }
@@ -60,9 +56,8 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get host
      *
      * @param int|null $storeId Store ID
-     * @return string
      */
-    public function getHost($storeId = null)
+    public function getHost($storeId = null): string
     {
         return Mage::getStoreConfig(self::XML_PATH_HOST, $storeId);
     }
@@ -71,9 +66,8 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get port
      *
      * @param int|null $storeId Store ID
-     * @return string
      */
-    public function getPort($storeId = null)
+    public function getPort($storeId = null): string
     {
         return Mage::getStoreConfig(self::XML_PATH_PORT, $storeId);
     }
@@ -82,9 +76,8 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get protocol
      *
      * @param int|null $storeId Store ID
-     * @return string
      */
-    public function getProtocol($storeId = null)
+    public function getProtocol($storeId = null): string
     {
         return Mage::getStoreConfig(self::XML_PATH_PROTOCOL, $storeId);
     }
@@ -93,9 +86,8 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get collection name
      *
      * @param int|null $storeId Store ID
-     * @return string
      */
-    public function getCollectionName($storeId = null)
+    public function getCollectionName($storeId = null): string
     {
         return Mage::getStoreConfig(self::XML_PATH_COLLECTION_NAME, $storeId);
     }
@@ -104,7 +96,7 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get cache lifetime for instant search
      * 
      */
-    public function getCacheLifetime($storeId = null)
+    public function getCacheLifetime($storeId = null): int
     {
         return (int) Mage::getStoreConfig(self::XML_PATH_INSTANTSEARCH_CACHE, $storeId);
     }

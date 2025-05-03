@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_Resource_Fulltext_Engine
 {
     /**
@@ -47,7 +50,7 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
             return parent::saveEntityIndexes($storeId, $entityIndexes, $entityType);
         }
         try {
-            $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: true);
+            $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: true, identifiers: array_keys($entityIndexes));
         } catch (Exception $e) {
             Mage::logException($e);
         }
