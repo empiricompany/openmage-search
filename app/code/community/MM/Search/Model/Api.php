@@ -191,6 +191,6 @@ class MM_Search_Model_Api
 
     public function updateSchema(Mage_Catalog_Model_Resource_Eav_Attribute $attribute = null): static
     {
-        return $this->reindex();
+        return $this->reindex(dropIndex: true);
     }
 }

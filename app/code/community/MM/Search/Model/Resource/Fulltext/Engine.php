@@ -50,7 +50,7 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
             return parent::saveEntityIndexes($storeId, $entityIndexes, $entityType);
         }
         try {
-            $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: true, identifiers: array_keys($entityIndexes));
+            $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: false, identifiers: array_keys($entityIndexes));
         } catch (Exception $e) {
             Mage::logException($e);
         }
@@ -58,7 +58,7 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
     }
 
     /**
-     * Remove entity data from fulltext search table
+     * Remove entity data
      *
      * @param int $storeId
      * @param array|int $entityId
