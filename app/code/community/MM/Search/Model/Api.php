@@ -51,15 +51,35 @@ class MM_Search_Model_Api
         $this->collectionName = $this->_helper->getCollectionName($storeId);
         return $this;
     }
+
+    /**
+     * Get store ID
+     *
+     * @return int|null
+     */
+    public function getStoreId(): int|null
+    {
+        return $this->storeId;
+    }
+
     /**
      * Set collection name
      * @param string $collectionName
      * @return static
      */
-    public function setCollectionName($collectionName = null)
+    public function setCollectionName($collectionName = null): static
     {
         $this->collectionName = $collectionName;
         return $this;
+    }    
+    /**
+     * Get collection name
+     *
+     * @return string
+     */
+    public function getCollectionName(): string
+    {
+        return $this->_helper->getCollectionName($this->storeId);
     }
 
     /**
@@ -157,14 +177,17 @@ class MM_Search_Model_Api
             if ($attribute->getIsFilterableInSearch()) {
                 $filterable = true;
             }
+            // TODO: Add support for sortable attributes, this seems to be not working in Typesense
+            if ($attribute->getUsedForSortBy()) {
+                $sortable = true;
+            }
             $code = $attribute->getAttributeCode();
             if ($attribute->getBackendType() === 'decimal') {
-                $field = new Field\FloatField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: true, searchable: false);
+                $field = new Field\FloatField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: $sortable, searchable: false);
             } elseif (in_array($code, ['status', 'visibility'])) {
-                $field = new Field\IntegerField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: true, searchable: false);
+                $field = new Field\IntegerField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: $sortable, searchable: false);
             } else {
-                $field = new Field\TextField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: true, searchable: true);
-
+                $field = new Field\TextField($attribute->getAttributeCode(), multiple: $multiple, filterable: $filterable, sortable: $sortable, searchable: true);
             }
             $fields[$attribute->getAttributeCode()] = $field;
         }
@@ -173,30 +196,26 @@ class MM_Search_Model_Api
         ]);
         return $schema;
     }
-    
-    /**
-     * Get collection name
-     *
-     * @return string
-     */
-    public function getCollectionName()
-    {
-        return $this->_helper->getCollectionName($this->storeId);
-    }
 
-    public function updateSchema(Mage_Catalog_Model_Resource_Eav_Attribute $attribute, $collectionName = null)
+    public function reindex($dropIndex = false): static
     {
-        if ($collectionName === null) {
-            $collectionName = $this->getCollectionName();
-        }
+        $collectionName = $this->getCollectionName();
         $reindexProviders = [
             new MM_Search_Model_ProductReindexProvider($this->storeId)
         ];
         $reindexConfig = \CmsIg\Seal\Reindex\ReindexConfig::create()
             ->withIndex($collectionName)
             ->withBulkSize(100)
-            ->withDropIndex(true);
+            ->withDropIndex($dropIndex);
         
-        return $this->getEngine()->reindex($reindexProviders, $reindexConfig);
+        $this->getEngine()->reindex($reindexProviders, $reindexConfig, function ($index, $count, $total) {
+            Mage::log("Reindexing {$index}: {$count}/{$total}");
+        });
+        return $this;
+    }
+
+    public function updateSchema(Mage_Catalog_Model_Resource_Eav_Attribute $attribute = null): static
+    {
+        return $this->reindex();
     }
 }

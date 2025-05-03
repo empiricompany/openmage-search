@@ -1,8 +1,4 @@
 <?php
-/**
- * Typesense search engine implementation
- */
-
 class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_Resource_Fulltext_Engine
 {
     /**
@@ -42,78 +38,27 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      *
      * @param int $storeId
      * @param array $entityIndexes
-     * @param string $entityType
-     * @return Mage_CatalogSearch_Model_Resource_Fulltext_Engine
+     * @param string $entityType 'product'|'cms'
+     * @return $this
      */
-    public function saveEntityIndexes($storeId, $entityIndexes, $entityType = 'product')
+    public function saveEntityIndexes($storeId, $entityIndexes, $entityType = 'product'): static
     {
         if (!$this->_helper->isEnabled($storeId)) {
             return parent::saveEntityIndexes($storeId, $entityIndexes, $entityType);
         }
         try {
-            $collectionName = $this->_helper->getCollectionName($storeId);
-            $engine = $this->_apiModel->setStoreId($storeId)->getEngine();
-            if ($engine->existIndex($this->_helper->getCollectionName($storeId)) === false) {
-                $this->_createCollection($storeId);
-            }
-
-            $productCollection = Mage::getResourceModel('catalog/product_collection')
-                ->setStoreId($storeId)
-                ->addAttributeToSelect('*')
-                ->addUrlRewrite()
-                ->setVisibility([
-                    Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
-                    Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH
-                ])
-                ->addFieldToFilter('entity_id', array('in' => array_keys($entityIndexes)));
-            // Prepare documents for batch upsert
-            foreach ($productCollection as $product) {
-                /**
-                 * @var Mage_Catalog_Model_Product $product
-                 */
-                if (!$product->getId()) {
-                    continue;
-                }
-
-                $payload = new Varien_Object([
-                    'id' => (string) $product->getId(),
-                    'sku' => (string) $product->getSku(),
-                    'url_key' => (string) $product->getUrlKey(),
-                    'request_path' => (string) $product->getRequestPath() ?: 'catalog/product/view/id/' . $product->getId(),
-                    'category_names' => (array) $this->_getCategoryNames($product, $storeId),
-                    'thumbnail' => (string) $product->getThumbnail(),
-                    'thumbnail_small' => (string) $this->_getResizedImageUrl($product, 100, 100),
-                    'thumbnail_medium' => (string) $this->_getResizedImageUrl($product, 300, 300),
-                ]);
-
-                // Add additional attributes
-                $attributes = Mage::getResourceModel('catalog/product_attribute_collection')->addSearchableAttributeFilter();
-                foreach ($attributes as $attribute) {
-                    $code = $attribute->getAttributeCode();
-                    if ($attribute->getBackendType() === 'decimal') {
-                        $payload->setData($code, (float) $product->getData($code));
-                    } elseif (in_array($code, ['status', 'visibility'])) {
-                        $payload->setData($code, (int) $product->getData($code));
-                    } elseif ($attribute->getFrontendInput() === 'select') {
-                        $payload->setData($code, (string) $product->getAttributeText($code));
-                    } else {
-                        $payload->setData($code, (string) $product->getData($code));
-                    }
-                }
-                $engine->saveDocument($collectionName, $payload->getData());
-
-            }            
-            return $this;
+            $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: true);
         } catch (Exception $e) {
             Mage::logException($e);
         }
+        return $this;
     }
 
     /**
      * Remove entity data from fulltext search table
      *
      * @param int $storeId
-     * @param int $entityId
+     * @param array|int $entityId
      * @param string $entity 'product'|'cms'
      * @return $this
      */
@@ -127,7 +72,9 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
         }
         try {
             $engine = $this->_apiModel->setStoreId($storeId)->getEngine();
-            $engine->deleteDocument($this->_helper->getCollectionName($storeId), $entityId);
+            foreach ($entityId as $id) {
+                $engine->deleteDocument($this->_helper->getCollectionName($storeId), $id);
+            }
         } catch (Exception $e) {
             Mage::logException($e);
         }

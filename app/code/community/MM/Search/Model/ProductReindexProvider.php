@@ -4,9 +4,15 @@ use CmsIg\Seal\Reindex\ReindexProviderInterface;
 
 class MM_Search_Model_ProductReindexProvider implements ReindexProviderInterface
 {
+
+    private static $indexName; 
+
+    private $_collection = null;
+
     public function __construct(
-        private readonly int $storeId,
+        private readonly int $storeId
     ) {
+        self::$indexName = Mage::getSingleton('mm_search/api')->getCollectionName($this->storeId);
     }
     public function getStoreId(): int
     {
@@ -15,7 +21,27 @@ class MM_Search_Model_ProductReindexProvider implements ReindexProviderInterface
 
     public function total(): ?int
     {
-        return null;
+        return $this->getCollection()->count();
+    }
+
+    protected function getCollection($entity_ids = null): Mage_Catalog_Model_Resource_Collection_Abstract|Mage_Catalog_Model_Resource_Product_Collection
+    {
+        if (!$this->_collection) {
+            $this->_collection = Mage::getResourceModel('catalog/product_collection')
+                ->setStoreId($this->storeId)
+                ->addAttributeToSelect('*')
+                ->addUrlRewrite()
+                ->setVisibility([
+                    Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
+                    Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH
+                ]);
+            if ($entity_ids) {
+                $this->_collection->addFieldToFilter('entity_id', array('in' => $entity_ids));
+            }
+        }
+        Mage::log($this->_collection->getSelect()->__toString());
+        Mage::log($this->_collection->count());
+        return $this->_collection;
     }
 
     public function provide(ReindexConfig $reindexConfig): \Generator
@@ -24,17 +50,7 @@ class MM_Search_Model_ProductReindexProvider implements ReindexProviderInterface
         // use `$reindexConfig->getIdentifiers()` or `$reindexConfig->getDateTimeBoundary()`
         //     to support partial reindexing
 
-        $productCollection = Mage::getResourceModel('catalog/product_collection')
-            ->setStoreId($this->storeId)
-            ->addAttributeToSelect('*')
-            ->addUrlRewrite()
-            ->setVisibility([
-                Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
-                Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH
-            ])
-            ->addFieldToFilter('entity_id', array('in' => $reindexConfig->getIdentifiers()));
-
-        foreach ($productCollection as $product) {
+        foreach ($this->getCollection($reindexConfig->getIdentifiers()) as $product) {
             /**
              * @var Mage_Catalog_Model_Product $product
              */
@@ -42,39 +58,39 @@ class MM_Search_Model_ProductReindexProvider implements ReindexProviderInterface
                 continue;
             }
 
-            yield [
+            $productData = [
                 'id' => (string) $product->getId(),
                 'sku' => (string) $product->getSku(),
                 'url_key' => (string) $product->getUrlKey(),
                 'request_path' => (string) $product->getRequestPath() ?: 'catalog/product/view/id/' . $product->getId(),
-                'category_names' => (array) $this->_getCategoryNames($product, $storeId),
+                'category_names' => (array) $this->_getCategoryNames($product, $this->storeId),
                 'thumbnail' => (string) $product->getThumbnail(),
                 'thumbnail_small' => (string) $this->_getResizedImageUrl($product, 100, 100),
                 'thumbnail_medium' => (string) $this->_getResizedImageUrl($product, 300, 300),
             ];
 
-            // Add additional attributes
             $attributes = Mage::getResourceModel('catalog/product_attribute_collection')->addSearchableAttributeFilter();
             foreach ($attributes as $attribute) {
                 $code = $attribute->getAttributeCode();
                 if ($attribute->getBackendType() === 'decimal') {
-                    yield $code => (float) $product->getData($code);
+                    $productData[$code] = (float) $product->getData($code);
                 } elseif (in_array($code, ['status', 'visibility'])) {
-                    yield $code => (int) $product->getData($code);
+                    $productData[$code] = (int) $product->getData($code);
                 } elseif ($attribute->getFrontendInput() === 'select') {
-                    yield $code => (string) $product->getAttributeText($code);
+                    $productData[$code] = (string) $product->getAttributeText($code);
                 } else {
-                    yield $code => (string) $product->getData($code);
+                    $productData[$code] = (string) $product->getData($code);
                 }
             }
 
+            yield $productData;
         }
 
     }
 
     public static function getIndex(): string
     {
-        return 'Products';
+        return self::$indexName;
     }
 
     
