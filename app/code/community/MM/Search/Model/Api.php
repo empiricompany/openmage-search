@@ -158,8 +158,9 @@ class MM_Search_Model_Api
     protected function getSchema(): Schema
     {
         $collectionName = $this->getCollectionName();
-        
-        // Use schema helper to get complete schema
+        /**
+         * @var MM_Search_Helper_Schema $schemaHelper
+         */
         $schemaHelper = Mage::helper('mm_search/schema');
         return $schemaHelper->getCompleteSchema($collectionName);
     }
@@ -167,7 +168,7 @@ class MM_Search_Model_Api
     public function reindex($dropIndex = false, $identifiers = []): static
     {
         $collectionName = $this->getCollectionName();
-        if (Mage::registry("MM_SEARCH_REINDEX_". $collectionName)) {
+        if (Mage::registry("MM_SEARCH_REINDEX_$collectionName")) {
             return $this;
         }
         $reindexProviders = [
@@ -182,10 +183,16 @@ class MM_Search_Model_Api
         $this->getEngine()->reindex($reindexProviders, $reindexConfig, function ($index, $count, $total) {
             //Mage::log( sprintf("Reindexing %s: %s/%s", $index, $count, $total));
         });
-        Mage::register("MM_SEARCH_REINDEX_". $collectionName, true);
         Mage::getSingleton('adminhtml/session')->addSuccess(
             Mage::helper('mm_search')->__('Collection "%s" was reindex.', $collectionName)
         );
+        Mage::register("MM_SEARCH_REINDEX_$collectionName", true);
+        return $this;
+    }
+
+    public function deleteDocument($identifier): static
+    {
+        $this->getEngine()->deleteDocument($this->getCollectionName(), $identifier);
         return $this;
     }
 
