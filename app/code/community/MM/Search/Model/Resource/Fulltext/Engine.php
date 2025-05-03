@@ -27,7 +27,7 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      * @param string $entity 'product'|'cms'
      * @return $this
      */
-    public function saveEntityIndex($entityId, $storeId, $index, $entity = 'product')
+    public function saveEntityIndex($entityId, $storeId, $index, $entity = 'product'): static
     {
         $this->saveEntityIndexes($storeId, [$entityId => $index], $entity);
         return $this;
@@ -62,7 +62,7 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      * @param string $entity 'product'|'cms'
      * @return $this
      */
-    public function cleanIndex($storeId = null, $entityId = null, $entity = 'product')
+    public function cleanIndex($storeId = null, $entityId = null, $entity = 'product'): Mage_CatalogSearch_Model_Resource_Fulltext_Engine|MM_Search_Model_Resource_Fulltext_Engine
     {
         if (!$this->_helper->isEnabled($storeId)) {
             return parent::cleanIndex($storeId, $entityId, $entity);
@@ -123,59 +123,5 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
             // Fallback to default engine
             return parent::getIdsByQuery($query);
         }
-    } */
-
-    /**
-     * Create Typesense collection
-     *
-     * @param int $storeId
-     * @return void
-     */
-    protected function _createCollection($storeId)
-    {
-        $this->_apiModel->setStoreId($storeId)->getEngine()->createSchema();
-    }
-
-    
-    /**
-     * Get resized image URL
-     *
-     * @param Mage_Catalog_Model_Product $product Product
-     * @param int $width Width desired
-     * @param int $height Height desired
-     * @return string Resized image URL
-     * @throws Exception
-     */
-    protected function _getResizedImageUrl(Mage_Catalog_Model_Product $product, $width, $height)
-    {
-        try {
-            $imageHelper = Mage::helper('catalog/image');
-            $imageUrl = $imageHelper->init($product, 'thumbnail')
-                ->resize($width, $height);
-            if (!$imageUrl) {
-                return Mage::getDesign()->getSkinUrl('images/catalog/product/placeholder/image.jpg');
-            }
-            
-            return $imageUrl;
-        } catch (Exception $e) {
-            Mage::logException($e);
-            return '';
-        }
-    }
-    
-    /**
-     * Get category names for a product
-     * @param Mage_Catalog_Model_Product $product
-     * @param mixed $storeId
-     * @return array
-     */
-    protected function _getCategoryNames(Mage_Catalog_Model_Product $product, $storeId)
-    {
-        // Get category names
-        $categoryCollection = $product->getCategoryCollection()
-            ->setStore($storeId)
-            ->addAttributeToSelect('name')
-            ->addAttributeToFilter('is_active', true);
-        return $categoryCollection->getColumnValues('name');
-    }   
+    } */    
 }
