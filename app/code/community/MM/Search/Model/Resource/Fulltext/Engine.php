@@ -9,16 +9,10 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      */
     protected $_apiModel;
 
-    /**
-     * @var MM_Search_Helper_Data
-     */
-    protected $_helper;
-
     public function __construct()
     {
         parent::__construct();
         $this->_apiModel = Mage::getSingleton('mm_search/api');
-        $this->_helper = Mage::helper('mm_search');
     }
 
     /**
@@ -46,9 +40,6 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      */
     public function saveEntityIndexes($storeId, $entityIndexes, $entityType = 'product'): static
     {
-        if (!$this->_helper->isEnabled($storeId)) {
-            return parent::saveEntityIndexes($storeId, $entityIndexes, $entityType);
-        }
         try {
             $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: false, identifiers: array_keys($entityIndexes));
         } catch (Exception $e) {
@@ -67,16 +58,15 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      */
     public function cleanIndex($storeId = null, $entityId = null, $entity = 'product'): Mage_CatalogSearch_Model_Resource_Fulltext_Engine|MM_Search_Model_Resource_Fulltext_Engine
     {
-        if (!$this->_helper->isEnabled($storeId)) {
-            return parent::cleanIndex($storeId, $entityId, $entity);
-        }
         if ($entityId === null) {
             return $this;
         }
         try {
-            $engine = $this->_apiModel->setStoreId($storeId)->getEngine();
-            foreach ($entityId as $id) {
-                $engine->deleteDocument($this->_helper->getCollectionName($storeId), $id);
+            /* if (!is_null($storeId)) {
+                $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: false, identifiers: $entityId);
+            } */
+            foreach ($entityId as $identifier) {
+                $this->_apiModel->setStoreId($storeId)->deleteDocument($identifier);
             }
         } catch (Exception $e) {
             Mage::logException($e);
