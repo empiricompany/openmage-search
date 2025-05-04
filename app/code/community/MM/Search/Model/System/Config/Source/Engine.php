@@ -14,7 +14,7 @@ class MM_Search_Model_System_Config_Source_Engine
      */
     public function toOptionArray(): array
     {
-        $adapterManager = Mage::getSingleton('mm_search/adapter_manager');
+        $adapterManager = Mage::getSingleton('mm_search/api_factory');
         $engines = $adapterManager->getAvailableEngines();
         
         $options = [];
@@ -35,7 +35,7 @@ class MM_Search_Model_System_Config_Source_Engine
      */
     public function toArray(): array
     {
-        $adapterManager = Mage::getSingleton('mm_search/adapter_manager');
+        $adapterManager = Mage::getSingleton('mm_search/api_factory');
         return $adapterManager->getAvailableEngines();
     }
 }

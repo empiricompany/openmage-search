@@ -5,9 +5,9 @@ declare(strict_types=1);
 use CmsIg\Seal\Reindex\ReindexConfig;
 use CmsIg\Seal\Reindex\ReindexProviderInterface;
 
-class MM_Search_Model_ProductReindexProvider implements ReindexProviderInterface
+class MM_Search_Model_Reindex_Provider_Product implements ReindexProviderInterface
 {
-    private static $indexName; 
+    private static $indexName;
 
     private $_collection = null;
 
@@ -37,7 +37,7 @@ class MM_Search_Model_ProductReindexProvider implements ReindexProviderInterface
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH
                 ]);
-            
+
             if (!empty($entity_ids)) {
                 $this->_collection->addFieldToFilter('entity_id', ['in' => $entity_ids]);
             }
