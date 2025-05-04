@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 use Composer\InstalledVersions;
 /**
  * Factory for creating search engine adapters
