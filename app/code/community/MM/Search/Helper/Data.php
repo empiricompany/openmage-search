@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
 {
+    const XML_PATH_SEARCH_ENGINE_TYPE = 'mm_search/general/engine_type';
     const XML_PATH_SEARCH_ONLY_API_KEY = 'mm_search/connection/search_only_api_key';
     const XML_PATH_ADMIN_API_KEY = 'mm_search/connection/api_key';
     const XML_PATH_HOST = 'mm_search/connection/host';
@@ -24,6 +25,17 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return Mage::getStoreConfigFlag(self::XML_PATH_ENABLED, $storeId);
     }
+
+    /**
+     * Get search engine type from configuration
+     *
+     * @param int|null $storeId Store ID
+     */
+    public function getEngineType($storeId = null): string
+    {
+        return Mage::getStoreConfig(self::XML_PATH_SEARCH_ENGINE_TYPE, $storeId);
+    }
+
     /**
      * Get search only API key
      *

@@ -113,6 +113,7 @@
         <mm_search>
             <general>
                 <enabled>0</enabled>
+                <engine_type>typesense</engine_type>
             </general>
             <connection>
                 <proxy>1</proxy>

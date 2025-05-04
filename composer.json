@@ -20,7 +20,8 @@
         "magento-hackathon/magento-composer-installer": "*",
         "cmsig/seal": "*",
         "cmsig/seal-typesense-adapter": "*",
-        "php-http/curl-client": "*"
+        "php-http/curl-client": "*",
+        "cmsig/seal-meilisearch-adapter": "*"
     },
     "extra": {
         "map": [
