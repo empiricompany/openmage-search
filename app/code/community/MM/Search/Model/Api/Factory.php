@@ -113,20 +113,12 @@ class MM_Search_Model_Api_Factory
      * Register a new search engine adapter
      *
      * @param string $engineType Engine type identifier
-     * @param string $adapterClass Adapter class name (must implement MM_Search_Model_Api_AdapterInterface)
+     * @param MM_Search_Model_Api_AdapterInterface $adapterClass Adapter class name (must implement MM_Search_Model_Api_AdapterInterface)
      * @return $this
-     * @throws Mage_Core_Exception If adapter class doesn't implement required interface
      */
-    public function registerEngineAdapter(string $engineType, string $adapterClass): self
-    {
-        if (!is_subclass_of($adapterClass, MM_Search_Model_Api_AdapterInterface::class)) {
-            Mage::throwException(
-                sprintf('Adapter class %s must implement MM_Search_Model_Api_AdapterInterface', $adapterClass)
-            );
-        }
-        
+    public function registerEngineAdapter(string $engineType, MM_Search_Model_Api_AdapterInterface $adapterClass): self
+    {        
         $this->_engineAdapterMap[$engineType] = $adapterClass;
-        
         return $this;
     }
 }
