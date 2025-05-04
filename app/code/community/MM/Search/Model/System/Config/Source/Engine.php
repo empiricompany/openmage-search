@@ -14,8 +14,7 @@ class MM_Search_Model_System_Config_Source_Engine
      */
     public function toOptionArray(): array
     {
-        $adapterManager = Mage::getSingleton('mm_search/api_factory');
-        $engines = $adapterManager->getAvailableEngines();
+        $engines = $this->toArray();
         
         $options = [];
         foreach ($engines as $value => $label) {
