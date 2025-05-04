@@ -36,10 +36,10 @@ class MM_Search_Model_Api_Factory
     protected function _initEngineAdapterMap(): void
     {
         if (InstalledVersions::isInstalled('cmsig/seal-typesense-adapter')) {
-            $this->_engineAdapterMap[MM_Search_Model_Api_Adapter_Typesense::getType()] = MM_Search_Model_Api_Adapter_Typesense::class;
+            $this->registerEngineAdapter(MM_Search_Model_Api_Adapter_Typesense::getType(), MM_Search_Model_Api_Adapter_Typesense::class);
         }
         if (InstalledVersions::isInstalled('cmsig/seal-meilisearch-adapter')) {
-            $this->_engineAdapterMap[MM_Search_Model_Api_Adapter_Meilisearch::getType()] = MM_Search_Model_Api_Adapter_Meilisearch::class;
+            $this->registerEngineAdapter(MM_Search_Model_Api_Adapter_Meilisearch::getType(), MM_Search_Model_Api_Adapter_Meilisearch::class);
         }
     }
 
@@ -113,7 +113,7 @@ class MM_Search_Model_Api_Factory
      * Register a new search engine adapter
      *
      * @param string $engineType Engine type identifier
-     * @param MM_Search_Model_Api_AdapterInterface $adapterClass Adapter class name (must implement MM_Search_Model_Api_AdapterInterface)
+     * @param class-string<MM_Search_Model_Api_AdapterInterface $adapterClass Adapter class name (must implement MM_Search_Model_Api_AdapterInterface)
      * @return $this
      */
     public function registerEngineAdapter(string $engineType, MM_Search_Model_Api_AdapterInterface $adapterClass): self
