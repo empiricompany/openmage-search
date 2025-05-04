@@ -2,22 +2,8 @@
 
 declare(strict_types=1);
 
-use Http\Client\Curl\Client as CurlClient;
-use Http\Discovery\Psr17FactoryDiscovery;
-use CmsIg\Seal\Adapter\Typesense\TypesenseAdapter;
-use CmsIg\Seal\Engine;
-use Typesense\Client;
-
-use CmsIg\Seal\Schema\Index;
-use CmsIg\Seal\Schema\Schema;
-
 class MM_Search_Model_Api
-{
-    /**
-     * @var Client|null
-     */
-    protected $client = null;
-    
+{   
     /**
      * @var int|null
      */
@@ -34,6 +20,11 @@ class MM_Search_Model_Api
     protected $_helper;
 
     /**
+     * @var CmsIg\Seal\Adapter\AdapterInterface
+     */
+    protected $_adapter = null;
+
+    /**
      * Bulk size for reindexing
      */
     private int $_bulkSize = 100;
@@ -41,6 +32,12 @@ class MM_Search_Model_Api
     public function __construct()
     {
         $this->_helper = Mage::helper('mm_search');
+    }
+
+    public function getAdapter(): CmsIg\Seal\Adapter\AdapterInterface
+    {
+        return $this->_adapter = Mage::getSingleton('mm_search/adapter_manager')
+                ->createAdapter($this->storeId);
     }
     
     /**
@@ -86,76 +83,15 @@ class MM_Search_Model_Api
         return $this->_helper->getCollectionName($this->storeId);
     }
 
-    /**
-     * Get admin client
-     *
-     * @return Client
-     */
-    public function getAdminClient(): Client|null
+    public function getEngine(): CmsIg\Seal\Engine
     {
-        if ($this->client === null) {
-            $apiKey = $this->_helper->getAdminApiKey($this->storeId);
-            $host = $this->_helper->getHost($this->storeId);
-            $port = $this->_helper->getPort($this->storeId);
-            $protocol = $this->_helper->getProtocol($this->storeId);
-            
-            $this->client = $this->getClient($apiKey, $host, $port, $protocol);
-        }
-        
-        return $this->client;
-    }
-    
-    /**
-     * Get search-only client
-     *
-     * @return Client
-     */
-    public function getSearchClient(): Client
-    {
-        $apiKey = $this->_helper->getSearchOnlyApiKey($this->storeId);
-        $host = $this->_helper->getHost($this->storeId);
-        $port = $this->_helper->getPort($this->storeId);
-        $protocol = $this->_helper->getProtocol($this->storeId);
-        
-        return $this->getClient($apiKey, $host, $port, $protocol);
-    }
-    
-    /**
-     * Get client with parameters
-     *
-     * @param string $apiKey
-     * @param string $host
-     * @param int $port
-     * @param string $protocol
-     * @param string $path
-     * @return Client
-     */
-    public function getClient($apiKey, $host, $port, $protocol): Client
-    {
-        return new Client(
-            [
-               'api_key' => $apiKey,
-                'nodes' => [
-                    [
-                        'host' => $host,
-                        'port' => $port,
-                        'protocol' => $protocol
-                    ]
-                ],
-               'client' => new CurlClient(Psr17FactoryDiscovery::findResponseFactory(), Psr17FactoryDiscovery::findStreamFactory()),
-            ]
-       );
-    }
-
-    public function getEngine(): Engine
-    {
-        return new Engine(
-            new TypesenseAdapter($this->getAdminClient()),
+        return new CmsIg\Seal\Engine(
+            $this->getAdapter(),
             $this->getSchema(),
         );
     }
 
-    protected function getSchema(): Schema
+    protected function getSchema(): CmsIg\Seal\Schema\Schema
     {
         $collectionName = $this->getCollectionName();
         /**
@@ -184,7 +120,7 @@ class MM_Search_Model_Api
             //Mage::log( sprintf("Reindexing %s: %s/%s", $index, $count, $total));
         });
         Mage::getSingleton('adminhtml/session')->addSuccess(
-            Mage::helper('mm_search')->__('Collection "%s" was reindex.', $collectionName)
+            Mage::helper('mm_search')->__('Collection "%s" was reindex on %s.', $collectionName, get_class($this->getAdapter()))
         );
         Mage::register("MM_SEARCH_REINDEX_$collectionName", true);
         return $this;
