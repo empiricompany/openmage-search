@@ -36,10 +36,10 @@ class MM_Search_Model_Api_Factory
     protected function _initEngineAdapterMap(): void
     {
         if (InstalledVersions::isInstalled('cmsig/seal-typesense-adapter')) {
-            $this->registerEngineAdapter(MM_Search_Model_Api_Adapter_Typesense::getType(), MM_Search_Model_Api_Adapter_Typesense::class);
+            $this->registerEngineAdapter(MM_Search_Model_Api_Adapter_Typesense::class);
         }
         if (InstalledVersions::isInstalled('cmsig/seal-meilisearch-adapter')) {
-            $this->registerEngineAdapter(MM_Search_Model_Api_Adapter_Meilisearch::getType(), MM_Search_Model_Api_Adapter_Meilisearch::class);
+            $this->registerEngineAdapter(MM_Search_Model_Api_Adapter_Meilisearch::class);
         }
     }
 
@@ -112,13 +112,21 @@ class MM_Search_Model_Api_Factory
     /**
      * Register a new search engine adapter
      *
-     * @param string $engineType Engine type identifier
      * @param class-string<MM_Search_Model_Api_AdapterInterface $adapterClass Adapter class name (must implement MM_Search_Model_Api_AdapterInterface)
      * @return $this
      */
-    public function registerEngineAdapter(string $engineType, MM_Search_Model_Api_AdapterInterface $adapterClass): self
-    {        
-        $this->_engineAdapterMap[$engineType] = $adapterClass;
+    public function registerEngineAdapter($adapterClass): self
+    { 
+        if (!is_subclass_of($adapterClass, MM_Search_Model_Api_AdapterInterface::class)) {
+            Mage::throwException(sprintf('Adapter %s does not implement MM_Search_Model_Api_AdapterInterface', $adapterClass));
+        }
+        if (isset($this->_engineAdapterMap[$adapterClass::getType()])) {
+            Mage::throwException(sprintf('Adapter %s is already registered for type %s', $adapterClass, $adapterClass::getType()));
+        }
+        if (!class_exists($adapterClass)) {
+            Mage::throwException(sprintf('Adapter class %s does not exist', $adapterClass));
+        }
+        $this->_engineAdapterMap[$adapterClass::getType()] = $adapterClass;
         return $this;
     }
 }
