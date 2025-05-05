@@ -1,39 +1,15 @@
-/**
- * Implementazione di InstantSearch.js per Typesense
- */
 document.addEventListener('DOMContentLoaded', function() {    
-    // Inizializza l'adapter Typesense per InstantSearch
-    const typesenseInstantsearchAdapter = new TypesenseInstantSearchAdapter({
-        server: {
-            apiKey: window.typesenseConfig.apiKey,
-            nodes: [{
-                host: window.typesenseConfig.host,
-                path: window.typesenseConfig.path,
-                protocol: window.typesenseConfig.protocol
-            }],
-            cacheSearchResultsForSeconds: window.typesenseConfig.cacheSearchResultsForSeconds,
-        },
-        additionalSearchParameters: {
-            query_by: 'name,short_description,sku',
-            highlight_full_fields: 'name,short_description,sku',
-            per_page: 15,
-            facet_by: ['category_names', ...window.typesenseConfig.facetBy].join(','),
-        }
-    });
-
-    const searchClient = typesenseInstantsearchAdapter.searchClient;
-
+    const searchClient = window.instantSearchConfig.instantsearchAdapter.searchClient;
     const search = instantsearch({
-        indexName: window.typesenseConfig.collectionName,
+        indexName: window.instantSearchConfig.collectionName,
         searchClient,
         initialUiState: {
-            [window.typesenseConfig.collectionName]: {
+            [window.instantSearchConfig.collectionName]: {
                 query: document.getElementById('search').value
             }
         }
     });
 
-    // Configura i widget di InstantSearch
     search.addWidgets([
         instantsearch.widgets.searchBox({
             container: '#typesense-searchbox',
@@ -45,7 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoadingIndicator: true
         }),
 
-        // Aggiungi il widget per mostrare il numero di risultati
         instantsearch.widgets.stats({
             container: '#typesense-stats',
             templates: {
@@ -54,17 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }),
 
-        // Aggiungi il widget per l'ordinamento
         instantsearch.widgets.sortBy({
             container: '#typesense-sort-by',
             items: [
-                { label: 'Rilevanza', value: window.typesenseConfig.collectionName },
-                { label: 'Prezzo (Da minore a maggiore)', value: `${window.typesenseConfig.collectionName}/sort/price:asc` },
-                { label: 'Prezzo (Da maggiore a minore)', value: `${window.typesenseConfig.collectionName}/sort/price:desc` }
+                { label: 'Rilevanza', value: window.instantSearchConfig.collectionName },
+                { label: 'Prezzo (Da minore a maggiore)', value: `${window.instantSearchConfig.collectionName}/sort/price:asc` },
+                { label: 'Prezzo (Da maggiore a minore)', value: `${window.instantSearchConfig.collectionName}/sort/price:desc` }
             ]
         }),
 
-        // Aggiungi il widget per i facet di categoria
         instantsearch.widgets.refinementList({
             container: '#typesense-categories',
             attribute: 'category_names',
@@ -80,8 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }),
 
-        // Aggiungi widget dinamici per i facet configurati
-        ...window.typesenseConfig.facetBy.map(facet => {
+        ...window.instantSearchConfig.facetBy.map(facet => {
             return facet === 'price' 
                 ? instantsearch.widgets.rangeSlider({
                     container: `#typesense-${facet}`,
@@ -105,7 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         ),
 
-        // Sostituisci hits con infiniteHits per implementare l'infinite scroll
         instantsearch.widgets.infiniteHits({
             container: '#typesense-hits',
             templates: {
@@ -121,18 +92,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         imageUrl = `/media/catalog/product${hit.thumbnail}`;
                     }
                     
-                    // Costruisci l'URL del prodotto con il prefisso dello store code
                     let productUrl = '#';
                     if (hit.request_path) {
-                        // Se c'è uno store code, lo aggiungiamo come prefisso
-                        if (window.typesenseConfig.storeCode) {
-                            productUrl = `/${window.typesenseConfig.storeCode}/${hit.request_path}`;
+                        if (window.instantSearchConfig.storeCode) {
+                            productUrl = `/${window.instantSearchConfig.storeCode}/${hit.request_path}`;
                         } else {
                             productUrl = `/${hit.request_path}`;
                         }
                     }
                     
-                    // Formatta il prezzo
                     const price = hit.price ? `${hit.price} €` : 'Prezzo non disponibile';
                     
                     return html`
@@ -164,15 +132,13 @@ document.addEventListener('DOMContentLoaded', function() {
         })
     ]);
 
-    // Inizializza la ricerca quando l'overlay viene aperto
     const overlay = document.getElementById('typesense-overlay');
     const mainInput = document.getElementById('search');
     let searchStarted = false;
 
-    // Apri l'overlay al click sull'input
     mainInput.addEventListener('click', function() {
         overlay.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Blocca lo scroll della pagina
+        document.body.style.overflow = 'hidden';
         
         if (!searchStarted) {
             try {
@@ -186,13 +152,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Chiudi l'overlay al click sul bottone di chiusura
     document.querySelector('.typesense-close-btn').addEventListener('click', function() {
         overlay.classList.remove('active');
-        document.body.style.overflow = ''; // Ripristina lo scroll della pagina
+        document.body.style.overflow = '';
     });
 
-    // Chiudi l'overlay premendo ESC
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && overlay.classList.contains('active')) {
             overlay.classList.remove('active');
@@ -200,7 +164,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Sincronizza il valore dell'input principale con InstantSearch
     mainInput.addEventListener('input', function(e) {
         if (searchStarted) {
             try {
@@ -211,7 +174,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Debug degli eventi di ricerca
     search.on('render', function() {
         //console.log('Search results rendered');
     });

@@ -1,34 +1,47 @@
 <?php
-/**
- * Typesense API model
- */
-use Typesense\Client;
+
+declare(strict_types=1);
 
 class MM_Search_Model_Api
-{
-    /**
-     * @var Client|null
-     */
-    protected $client = null;
-    
+{   
     /**
      * @var int|null
      */
-    protected $storeId = null;
+    protected ?int $storeId = null;
 
     /**
      * @var string|null
      */
-    protected $collectionName = null;
+    protected ?string $collectionName = null;
     
     /**
      * @var MM_Search_Helper_Data
      */
     protected $_helper;
+
+    /**
+     * @var CmsIg\Seal\Adapter\AdapterInterface|null
+     */
+    protected $_adapter = null;
+
+    /**
+     * Bulk size for reindexing
+     */
+    private int $_bulkSize = 100;
     
     public function __construct()
     {
         $this->_helper = Mage::helper('mm_search');
+    }
+
+    /**
+     * Get adapter instance
+     * 
+     * @return CmsIg\Seal\Adapter\AdapterInterface
+     */
+    public function getAdapter(): CmsIg\Seal\Adapter\AdapterInterface
+    {
+        return Mage::getSingleton('mm_search/api_factory')->createAdapter($this->storeId);
     }
     
     /**
@@ -37,173 +50,132 @@ class MM_Search_Model_Api
      * @param int|null $storeId
      * @return MM_Search_Model_Api
      */
-    public function setStoreId($storeId = null)
+    public function setStoreId(?int $storeId = null): static
     {
         $this->storeId = $storeId;
         $this->collectionName = $this->_helper->getCollectionName($storeId);
         return $this;
     }
+
     /**
-     * Set collection name
-     * @param string $collectionName
-     * @return static
+     * Get store ID
+     *
+     * @return int|null
      */
-    public function setCollectionName($collectionName = null)
+    public function getStoreId(): ?int
     {
-        $this->collectionName = $collectionName;
-        return $this;
+        return $this->storeId;
     }
 
     /**
-     * Get admin client
-     *
-     * @return Client
+     * Set collection name
+     * @param string|null $collectionName
+     * @return static
      */
-    public function getAdminClient()
+    public function setCollectionName(?string $collectionName = null): static
     {
-        if ($this->client === null) {
-            $apiKey = $this->_helper->getAdminApiKey($this->storeId);
-            $host = $this->_helper->getHost($this->storeId);
-            $port = $this->_helper->getPort($this->storeId);
-            $protocol = $this->_helper->getProtocol($this->storeId);
-            
-            $this->client = $this->getClient($apiKey, $host, $port, $protocol);
-        }
-        
-        return $this->client;
-    }
-    
-    /**
-     * Get search-only client
-     *
-     * @return Client
-     */
-    public function getSearchClient()
-    {
-        $apiKey = $this->_helper->getSearchOnlyApiKey($this->storeId);
-        $host = $this->_helper->getHost($this->storeId);
-        $port = $this->_helper->getPort($this->storeId);
-        $protocol = $this->_helper->getProtocol($this->storeId);
-        
-        return $this->getClient($apiKey, $host, $port, $protocol);
-    }
-    
-    /**
-     * Get client with parameters
-     *
-     * @param string $apiKey
-     * @param string $host
-     * @param int $port
-     * @param string $protocol
-     * @param string $path
-     * @return Client
-     */
-    public function getClient($apiKey, $host, $port, $protocol)
-    {
-        return new Client([
-            'api_key' => $apiKey,
-            'nodes' => [
-                [
-                    'host' => $host,
-                    'port' => $port,
-                    'protocol' => $protocol
-                ]
-            ],
-            'connection_timeout_seconds' => 5
-        ]);
-    }
+        $this->collectionName = $collectionName;
+        return $this;
+    }    
     
     /**
      * Get collection name
      *
      * @return string
      */
-    public function getCollectionName()
+    public function getCollectionName(): string
     {
         return $this->_helper->getCollectionName($this->storeId);
     }
 
-    public function updateSchema(Mage_Catalog_Model_Resource_Eav_Attribute $attribute, $collectionName = null)
+    /**
+     * Get search engine instance
+     * 
+     * @return CmsIg\Seal\Engine
+     */
+    public function getEngine(): CmsIg\Seal\Engine
     {
-        if ($collectionName === null) {
-            $collectionName = $this->collectionName;
-        }
-        
-        $_attributeCode = $attribute->getAttributeCode();
-        
+        return new CmsIg\Seal\Engine(
+            $this->getAdapter(),
+            $this->getSchema(),
+        );
+    }
+
+    /**
+     * Get schema
+     * 
+     * @return CmsIg\Seal\Schema\Schema
+     */
+    protected function getSchema(): CmsIg\Seal\Schema\Schema
+    {
+        $collectionName = $this->getCollectionName();
         /**
-         * @var Client $client
+         * @var MM_Search_Helper_Schema $schemaHelper
          */
-        $client = $this->getAdminClient();
-
-        // Drop field if it exists
-        $collectionFields = $client->collections[$collectionName]->retrieve();
-        $collectionFields = $collectionFields['fields'];
-        foreach ($collectionFields as $field) {
-            if ($field['name'] === $_attributeCode) {
-                $this->dropFieldFromCollection($attribute, $collectionName);
-                /* Mage::getSingleton('adminhtml/session')->addSuccess(
-                    Mage::helper('mm_search')->__('Field %s has been dropped from the collection %s', $_attributeCode, $collectionName)
-                ); */
-            }
-        }
-
-        // Add field if it is searchable
-        if ($attribute->getIsSearchable()) {
-            $client->collections[$collectionName]->update([
-                'fields' => [
-                    $this->getAttributeSchema($attribute)
-                ]
-            ]);
-            /* Mage::getSingleton('adminhtml/session')->addSuccess(
-                Mage::helper('mm_search')->__('Field %s has been added to the collection %s', $_attributeCode, $collectionName)
-            ); */
-        }
+        $schemaHelper = Mage::helper('mm_search/schema');
+        return $schemaHelper->getCompleteSchema($collectionName);
     }
 
     /**
-     * Get schema field from attribute
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute
-     * @return array
+     * Reindex products
+     * 
+     * @param bool $dropIndex Whether to drop the index before reindexing
+     * @param array $identifiers Product IDs to reindex (empty for all)
+     * @return static
      */
-    public function getAttributeSchema(Mage_Catalog_Model_Resource_Eav_Attribute $attribute)
+    public function reindex(bool $dropIndex = false, array $identifiers = []): static
     {
-        $code = $attribute->getAttributeCode();
-        $field = ['name' => $code];
-        if ($attribute->getBackendType() === 'decimal') {
-            $field['type'] = 'float';
-        } elseif (in_array($code, ['status', 'visibility'])) {
-            $field['type'] = 'int32';
-        } else {
-            $field['type'] = 'string';
-            if ($attribute->getFrontendInput() === 'select' || $attribute->getFrontendInput() === 'multiselect') {
-                $field['facet'] = true;
-            }
+        $collectionName = $this->getCollectionName();
+        if (Mage::registry("MM_SEARCH_REINDEX_$collectionName")) {
+            return $this;
         }
-        if ($attribute->getIsFilterableInSearch()) {
-            $field['facet'] = true;
-        }
-        $field['optional'] = true;
-        return $field;
+        
+        // Create provider with the current store ID
+        $reindexProviders = [
+            new MM_Search_Model_Reindex_Provider_Product( $this->storeId)
+        ];
+        
+        $reindexConfig = \CmsIg\Seal\Reindex\ReindexConfig::create()
+            ->withIndex($collectionName)
+            ->withBulkSize($this->_bulkSize)
+            ->withIdentifiers($identifiers)
+            ->withDropIndex($dropIndex);
+        
+        $this->getEngine()->reindex($reindexProviders, $reindexConfig, function ($index, $count, $total) {
+            //Mage::log( sprintf("Reindexing %s: %s/%s", $index, $count, $total));
+        });
+        
+        // Get engine type instead of adapter class name
+        $engineType = $this->_helper->getEngineType($this->storeId);
+        
+        Mage::getSingleton('adminhtml/session')->addSuccess(
+            Mage::helper('mm_search')->__('Collection "%s" was reindex on %s.', $collectionName, ucfirst($engineType))
+        );
+        
+        Mage::register("MM_SEARCH_REINDEX_$collectionName", true);
+        return $this;
     }
 
     /**
-     * Drop field from collection
-     * @param string $fieldName
-     * @return array
+     * Delete document from index
+     * 
+     * @param string|int $identifier Document ID
+     * @return static
      */
-    public function dropFieldFromCollection(Mage_Catalog_Model_Resource_Eav_Attribute $attribute, $collectionName = null)
+    public function deleteDocument($identifier): static
     {
-        if ($collectionName === null) {
-            $collectionName = $this->collectionName;
-        }
-        return $this->getAdminClient()->collections[$collectionName]->update([
-            'fields' => [
-                [
-                    'name' => $attribute->getAttributeCode(),
-                    'drop' => true
-                ]
-            ]
-        ]);   
+        $this->getEngine()->deleteDocument($this->getCollectionName(), $identifier);
+        return $this;
+    }
+
+    /**
+     * Update schema
+     * 
+     * @param Mage_Catalog_Model_Resource_Eav_Attribute|null $attribute Attribute to update
+     * @return static
+     */
+    public function updateSchema(?Mage_Catalog_Model_Resource_Eav_Attribute $attribute = null): static
+    {
+        return $this->reindex(dropIndex: true);
     }
 }

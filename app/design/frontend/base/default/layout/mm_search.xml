@@ -25,6 +25,10 @@
             </action>
             <action method="addItem">
                 <type>skin_js</type>
+                <name>js/mm_search/instant-meilisearch.umd.min.js</name>
+            </action>
+            <action method="addItem">
+                <type>skin_js</type>
                 <name>js/mm_search/instantsearch-custom.js</name>
             </action>
         </reference>
