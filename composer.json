@@ -18,7 +18,7 @@
         "php": ">=8.0 <8.5",
         "composer-runtime-api": "^2.0",
         "magento-hackathon/magento-composer-installer": "*",
-        "cmsig/seal": "^1.0",
+        "cmsig/seal": "^0.7",
         "php-http/curl-client": "^2.0",
         "cmsig/seal-typesense-adapter": "^0.7"
     },
