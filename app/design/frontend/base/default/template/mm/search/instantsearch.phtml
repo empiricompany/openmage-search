@@ -65,6 +65,10 @@ $_helper = $this->helper('mm_search');
 
     <div id="typesense-overlay" class="typesense-overlay">
         <div class="typesense-overlay-header">
+            <a class="logo" href="<?php echo $this->getUrl('') ?>">
+                <img src="<?php echo $this->getLogoSrc() ?>" alt="<?php echo $this->getLogoAlt() ?>" class="large" />
+                <img src="<?php echo $this->getLogoSrcSmall() ?>" alt="<?php echo $this->getLogoAlt() ?>" class="small" />
+            </a>
             <div id="typesense-searchbox"></div>
             <button class="typesense-close-btn">&times;</button>
         </div>
@@ -77,21 +81,27 @@ $_helper = $this->helper('mm_search');
             </div>
             
             <div class="typesense-main-content">
-                <div class="typesense-facets">
-                    <h3><?php echo $this->__('Category'); ?></h3>
-                    <div id="typesense-categories"></div>
-                    
-                    <?php foreach ($this->getFacetFields() as $value) : ?>
-                        <h3><?php echo strtoupper($value); ?></h3>
-                        <div id="typesense-<?php echo $value ?>"></div>
-                    <?php endforeach; ?>
+                <div class="block-layered-nav">
+                    <div class="block-content toggle-content">
+                        <p class="block-subtitle block-subtitle--filter">Filter</p>    
+                        <dl class="typesense-facets">
+                            <dt><?php echo $this->__('Category'); ?></dt>
+                            <dd id="typesense-categories"></dd>
+                            
+                            <?php foreach ($this->getFacetFields() as $value) : ?>
+                                <dt><?php echo strtoupper($value); ?></dt>
+                                <dd id="typesense-<?php echo $value ?>"></dd>
+                            <?php endforeach; ?>
+
+                            <?php /*
+                            <div class="filters-actions">
+                                <div id="typesense-clear-refinements"></div>
+                                <button type="button" class="show-results-btn"><?php echo $this->__('Show results') ?></button>
+                            </div>
+                            */ ?>
+                        </dl>
+                    </div>
                 </div>
                 
                 <div class="typesense-results">
                     <div id="typesense-hits"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
