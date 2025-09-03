@@ -8,7 +8,7 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
      * Proxy action for Typesense API
      * @return ?Mage_Core_Controller_Response_Http
      */
-    public function proxyAction()
+    public function proxyAction(): Mage_Core_Controller_Response_Http
     {
         try {
             /**
@@ -52,7 +52,7 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
                 Mage::throwException('Failed to connect to Typesense');
             }
             
-            $this->getResponse()
+            return $this->getResponse()
                 ->setHttpResponseCode($httpCode)
                 ->setBody($response);
                 
