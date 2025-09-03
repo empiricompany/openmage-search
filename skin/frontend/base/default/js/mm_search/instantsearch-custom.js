@@ -79,6 +79,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         instantsearch.widgets.infiniteHits({
             container: '#typesense-hits',
+            cssClasses: {
+                list: [
+                'products-grid products-grid--max-6-col',
+                ],
+            },
             templates: {
                 empty: 'Nessun risultato trovato',
                 item: (hit, { html, components }) => {                    
@@ -104,26 +109,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     const price = hit.price ? `${hit.price} €` : 'Prezzo non disponibile';
                     
                     return html`
-                        <article>
-                            <a href="${productUrl}">
-                                <img src="${imageUrl}" alt="${hit.name || 'Prodotto'}" />
-                            </a>
-                            <div class="product-content">
-                                <h2 class="product-name">
-                                    <a href="${productUrl}">
-                                        ${components.Highlight({ hit, attribute: 'name' })}
-                                    </a>
-                                </h2>
-                                <p class="product-sku">
-                                    SKU: ${components.Highlight({ hit, attribute: 'sku' })}
+                        <a href="${productUrl}" class="product-image">
+                            <img src="${imageUrl}" alt="${hit.name || 'Prodotto'}" />
+                        </a>
+                        <div class="product-info">
+                            <h2 class="product-name">
+                                <a href="${productUrl}">
+                                    ${components.Highlight({ hit, attribute: 'name' })}
+                                </a>
+                            </h2>
+                            <p class="product-sku">
+                                SKU: ${components.Highlight({ hit, attribute: 'sku' })}
+                            </p>
+                            <div class="price-box">
+                                <p class="product-price">
+                                    <span class="price">${price}</span>
                                 </p>
-                                <div class="price-box">
-                                    <p class="product-price">
-                                        <span class="price">${price}</span>
-                                    </p>
-                                </div>
                             </div>
-                        </article>
+                        </div>
                     `;
                 },
                 showMoreText: 'Carica altri prodotti'

@@ -2,7 +2,7 @@
 /**
  * Instantsearch Block
  */
-class MM_Search_Block_Instantsearch extends Mage_Core_Block_Template
+class MM_Search_Block_Instantsearch extends Mage_Page_Block_Html_Header
 {
     /**
      * Get proxy path url
