@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <a href="${productUrl}" class="product-image">
                             <img src="${imageUrl}" alt="${hit.name || 'Prodotto'}" />
                         </a>
-                        <div class="product-info">
+                        <div class="">
                             <h2 class="product-name">
                                 <a href="${productUrl}">
                                     ${components.Highlight({ hit, attribute: 'name' })}
