@@ -21,7 +21,7 @@
   list-style: none;
 }
 
-.ais-Carousel-navigation,
+/* .ais-Carousel-navigation,
 .ais-ClearRefinements-button,
 .ais-CurrentRefinements-delete,
 .ais-CurrentRefinements-reset,
@@ -48,7 +48,7 @@
   -webkit-user-select: none;
      -moz-user-select: none;
           user-select: none;
-}
+} */
 .ais-Carousel-navigation::-moz-focus-inner,
 .ais-ClearRefinements-button::-moz-focus-inner,
 .ais-CurrentRefinements-delete::-moz-focus-inner,
@@ -141,8 +141,7 @@
 
 .ais-RangeSlider .rheostat {
   overflow: visible;
-  margin-top: 40px;
-  margin-bottom: 40px;
+  margin: 40px 10px;
 }
 .ais-RangeSlider .rheostat-background {
   height: 6px;
@@ -162,7 +161,7 @@
   position: absolute;
   top: 1px;
   height: 4px;
-  background-color: #333;
+  background-color: #3366cc;
 }
 
 .rheostat-handle {
