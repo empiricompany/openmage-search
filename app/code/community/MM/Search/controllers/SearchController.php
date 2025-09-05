@@ -51,7 +51,7 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
             if ($response === false) {
                 Mage::throwException('Failed to connect to Typesense');
             }
-            
+            header('Content-Type: application/json');
             return $this->getResponse()
                 ->setHttpResponseCode($httpCode)
                 ->setBody($response);
