@@ -35,6 +35,9 @@
         width: auto;
         min-height: unset;
     }
+    .typesense-overlay-header .logo img {
+        max-height: 40px;
+    }
 }
 
 #typesense-searchbox {
