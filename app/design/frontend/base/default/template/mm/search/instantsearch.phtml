@@ -39,7 +39,7 @@ $_helper = $this->helper('mm_search');
                 additionalSearchParameters: {
                     query_by: 'name,short_description,sku',
                     highlight_full_fields: 'name,short_description,sku',
-                    per_page: 15,
+                    per_page: 12,
                     facet_by: ['category_names', ...window.instantSearchConfig.facetBy].join(','),
                 }
             });
@@ -73,13 +73,7 @@ $_helper = $this->helper('mm_search');
             <button class="typesense-close-btn">&times;</button>
         </div>
         
-        <div class="typesense-overlay-content">
-            
-            <div class="typesense-top-bar">
-                <div id="typesense-stats"></div>
-                <div id="typesense-sort-by"></div>
-            </div>
-            
+        <div class="typesense-overlay-content">            
             <div class="typesense-main-content">
                 <div class="block-layered-nav">
                     <div class="block-content toggle-content">
@@ -104,4 +98,13 @@ $_helper = $this->helper('mm_search');
                 </div>
                 
                 <div class="typesense-results">
+                    
+                    <div class="typesense-top-bar">
+                        <div id="typesense-stats"></div>
+                        <div style="display: flex; gap: 10px;">
+                            <div id="typesense-per-page"></div>
+                            <div id="typesense-sort-by"></div>
+                        </div>
+                    </div>
+                    
                     <div id="typesense-hits"></div>
