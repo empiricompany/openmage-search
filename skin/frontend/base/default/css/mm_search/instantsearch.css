@@ -74,7 +74,7 @@
     font-size: 14px;
     color: #666;
 }
-
+#typesense-per-page select,
 #typesense-sort-by select {
     padding: 5px 10px;
     border: 1px solid #ddd;
@@ -183,7 +183,7 @@
 .ais-SearchBox-form input[type="search"] {
     width: 100%;
     height: 40px;
-    padding: 0 40px 0 10px;
+    padding: 0 40px 0 40px;
 }
 
 .ais-SearchBox-input {
@@ -213,12 +213,13 @@
 
 .ais-SearchBox-reset {
     position: absolute;
-    right: 40px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     padding: 0;
+    line-height: 0;
     cursor: pointer;
 }
 
@@ -240,10 +241,11 @@
 }
 
 /* Stili per la barra di ricerca principale */
+.ais-SearchBox ,
 #search_mini_form {
     position: relative;
 }
-
+.ais-SearchBox:before,
 #search_mini_form:before {
     content: '';
     position: absolute;
@@ -257,7 +259,7 @@
     background-size: contain;
     z-index: 1;
 }
-
+.ais-SearchBox input,
 #search_mini_form input {
     padding-left: 35px;
 }

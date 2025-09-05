@@ -3,6 +3,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const search = instantsearch({
         indexName: window.instantSearchConfig.collectionName,
         searchClient,
+        numberLocale: 'it',
+        routing: true,
         initialUiState: {
             [window.instantSearchConfig.collectionName]: {
                 query: document.getElementById('search').value
@@ -18,7 +20,11 @@ document.addEventListener('DOMContentLoaded', function() {
             searchAsYouType: true,
             showReset: false,
             showSubmit: false,
-            showLoadingIndicator: true
+            showLoadingIndicator: true,
+            cssClasses: {
+                root: 'search_mini_form',
+                input: 'input-text',
+            },
         }),
 
         instantsearch.widgets.stats({
@@ -26,16 +32,31 @@ document.addEventListener('DOMContentLoaded', function() {
             templates: {
                 text: ({ nbHits, processingTimeMS }) => 
                     `${nbHits} risultati trovati in ${processingTimeMS}ms`
-            }
+            },        
+            cssClasses: {
+                text: 'text-muted',
+            },
         }),
-
+        instantsearch.widgets.hitsPerPage({
+            container: '#typesense-per-page',
+            items: [
+            { label: '12 per page', value: 12, default: true },
+            { label: '24 per page', value: 24 },
+            ],
+            cssClasses: {
+                select: '',
+            },
+        }),
         instantsearch.widgets.sortBy({
             container: '#typesense-sort-by',
             items: [
                 { label: 'Rilevanza', value: window.instantSearchConfig.collectionName },
                 { label: 'Prezzo (Da minore a maggiore)', value: `${window.instantSearchConfig.collectionName}/sort/price:asc` },
                 { label: 'Prezzo (Da maggiore a minore)', value: `${window.instantSearchConfig.collectionName}/sort/price:desc` }
-            ]
+            ],
+            cssClasses: {
+                root: 'sort-by',
+            },
         }),
 
         instantsearch.widgets.refinementList({
@@ -58,8 +79,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 ? instantsearch.widgets.rangeSlider({
                     container: `#typesense-${facet}`,
                     attribute: facet,
+                    pips: false,
+                    tooltips: true,
                     templates: {
                         header: 'Prezzo'
+                    },
+                    cssClasses: {
+                        root: 'price-range-slider',
                     }
                 })
                 : instantsearch.widgets.refinementList({
@@ -83,6 +109,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 list: [
                 'products-grid products-grid--max-6-col',
                 ],
+                item: 'item',
+                loadMore: 'button',
+                disabledLoadMore: 'button'
             },
             templates: {
                 empty: 'Nessun risultato trovato',
