@@ -11,10 +11,16 @@ class MM_Search_Model_Reindex_Provider_Product implements ReindexProviderInterfa
 
     private $_collection = null;
 
+    /**
+     * @var MM_Search_Helper_Schema
+     */
+    protected $_helperSchema;
+
     public function __construct(
         private readonly int $storeId
     ) {
-        self::$indexName = Mage::helper('mm_search/schema')->getIndexName($this->storeId);
+        $this->_helperSchema = Mage::helper('mm_search/schema');
+        self::$indexName = $this->_helperSchema->getIndexName($this->storeId);
     }
     public function getStoreId(): int
     {
@@ -31,7 +37,8 @@ class MM_Search_Model_Reindex_Provider_Product implements ReindexProviderInterfa
         if (!$this->_collection) {
             $this->_collection = Mage::getResourceModel('catalog/product_collection')
                 ->setStoreId($this->storeId)
-                ->addAttributeToSelect('*')
+                ->addAttributeToSelect($this->_helperSchema->getSearchableAttributes()->getColumnValues('attribute_code'))
+                ->addAttributeToSelect(['thumbnail', 'url_key'])
                 ->addUrlRewrite()
                 ->setVisibility([
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
@@ -49,12 +56,14 @@ class MM_Search_Model_Reindex_Provider_Product implements ReindexProviderInterfa
     {
         foreach ($this->getCollection($reindexConfig->getIdentifiers()) as $product) {
             if (!$product->getId()) {
+                //Mage::log('Product without ID found, skipping...');
                 continue;
             }
 
-            // Use schema helper to get complete product data
-            $schemaHelper = Mage::helper('mm_search/schema');
-            $productData = $schemaHelper->getCompleteProductData($product, $this->storeId);
+            // Use schema helper to get complete product data (base + attributes)
+            $productData = $this->_helperSchema->getCompleteProductData($product, $this->storeId);
+            //Mage::log('Indexing product ID ' . $product->getId());
+            //Mage::log($productData);
 
             yield $productData;
         }
