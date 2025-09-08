@@ -151,6 +151,9 @@
     font-size: 13px;
     margin-top: 5px;
 }
+.typesense-facets .ais-RefinementList-showMore--disabled {
+    display: none;
+}
 
 .typesense-facets .ais-RefinementList-searchBox {
     margin-bottom: 10px;
