@@ -46,12 +46,11 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
                 ->setHeader('Access-Control-Allow-Origin', '*')
                 ->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
                 ->setHeader('Access-Control-Allow-Headers', 'Content-Type')
-                ->setHeader('Content-Type', 'application/json');
+                ->setHeader('Content-Type', 'application/json', true);
             
             if ($response === false) {
                 Mage::throwException('Failed to connect to Typesense');
             }
-            header('Content-Type: application/json');
             return $this->getResponse()
                 ->setHttpResponseCode($httpCode)
                 ->setBody($response);
