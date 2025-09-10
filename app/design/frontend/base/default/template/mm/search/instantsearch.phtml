@@ -75,35 +75,47 @@ $_helper = $this->helper('mm_search');
         
         <div class="typesense-overlay-content">            
             <div class="typesense-main-content">
-                <div class="block-layered-nav">
-                    <div class="block-content toggle-content">
-                        <p class="block-subtitle block-subtitle--filter">Filter</p>    
-                        <dl class="typesense-facets">
-                            <dt><?php echo $this->__('Category'); ?></dt>
-                            <dd id="typesense-categories"></dd>
-                            
-                            <?php foreach ($this->getFacetFields() as $value) : ?>
-                                <dt>
-                                    <?php
-                                    $attribute = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $value);
-                                    echo $this->htmlEscape($attribute->getStoreLabel());
-                                    ?>
-                                </dt>
-                                <dd id="typesense-<?php echo $value ?>"></dd>
-                            <?php endforeach; ?>
+                <div id="layered-nav" class="block block-layered-nav skip-content">
+                    <div class="block-content">          
+                        <header>
+                            <div id="typesense-stats2"></div>
+                            <button class="typesense-close-btn" data-target-element="#layered-nav">×</button>
+                        </header>              
+                        <main>
+                            <dl class="typesense-facets">
+                                <dt><?php echo $this->__('Category'); ?></dt>
+                                <dd id="typesense-categories"></dd>
+                                
+                                <?php foreach ($this->getFacetFields() as $value) : ?>
+                                    <dt>
+                                        <?php
+                                        $attribute = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $value);
+                                        echo $this->htmlEscape($attribute->getStoreLabel());
+                                        ?>
+                                    </dt>
+                                    <dd id="typesense-<?php echo $value ?>" ></dd>
+                                <?php endforeach; ?>
 
-                            <?php /*
-                            <div class="filters-actions">
-                                <div id="typesense-clear-refinements"></div>
-                                <button type="button" class="show-results-btn"><?php echo $this->__('Show results') ?></button>
-                            </div>
-                            */ ?>
-                        </dl>
+                                <?php /*
+                                <div class="filters-actions">
+                                    <div id="typesense-clear-refinements"></div>
+                                    <button type="button" class="show-results-btn"><?php echo $this->__('Show results') ?></button>
+                                </div>
+                                */ ?>
+                            </dl>
+                        </main>
                     </div>
                 </div>
                 
                 <div class="typesense-results">
-                    
+                    <div class="skip-links">
+                        <a class="button skip-sidebar" data-target-element="#layered-nav" title="<?php echo $this->__('Filters') ?>">
+                            <svg viewBox="0 0 24 24" width="18px" height="18px" fill="currentColor">
+                                <path d="M.75 8.25h11.326A4.491 4.491 0 0 0 16.5 12a4.496 4.496 0 0 0 4.424-3.75h2.326a.75.75 0 0 0 0-1.5h-2.326C20.566 4.624 18.728 3 16.5 3s-4.066 1.624-4.424 3.75H.75a.75.75 0 0 0 0 1.5zM16.5 4.5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zm6.75 11.25H11.924C11.566 13.624 9.728 12 7.5 12s-4.066 1.624-4.424 3.75H.75a.75.75 0 0 0 0 1.5h2.326A4.491 4.491 0 0 0 7.5 21a4.496 4.496 0 0 0 4.424-3.75H23.25a.75.75 0 0 0 0-1.5zM7.5 19.5a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"></path>
+                            </svg>
+                            <span class="label"><?php echo $this->__('Filters') ?></span>
+                        </a>
+                    </div>
                     <div class="typesense-top-bar">
                         <div id="typesense-stats"></div>
                         <div style="display: flex; gap: 10px;">
