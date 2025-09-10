@@ -24,7 +24,7 @@
     background: #fff;
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 99;
 }
 .typesense-overlay-header .logo {
     display: none;
@@ -156,6 +156,7 @@
     .typesense-main-content .block-layered-nav {
         display: inherit;
         width: auto;
+        z-index: unset;
         position: relative;
         header {
             display: none;
