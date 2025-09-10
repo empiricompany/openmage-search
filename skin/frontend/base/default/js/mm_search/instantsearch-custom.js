@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
         indexName: window.instantSearchConfig.collectionName,
         searchClient,
         numberLocale: 'it',
-        routing: true,
         initialUiState: {
             [window.instantSearchConfig.collectionName]: {
                 query: document.getElementById('search').value
