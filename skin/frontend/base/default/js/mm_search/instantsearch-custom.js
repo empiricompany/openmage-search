@@ -31,7 +31,17 @@ document.addEventListener('DOMContentLoaded', function() {
             container: '#typesense-stats',
             templates: {
                 text: ({ nbHits, processingTimeMS }) => 
-                    `${nbHits} risultati trovati in ${processingTimeMS}ms`
+                    `<strong>${nbHits}</strong> risultati trovati in ${processingTimeMS}ms`
+            },        
+            cssClasses: {
+                text: 'text-muted',
+            },
+        }),
+        instantsearch.widgets.stats({
+            container: '#typesense-stats2',
+            templates: {
+                text: ({ nbHits, processingTimeMS }) => 
+                    `<strong>${nbHits}</strong> risultati trovati in ${processingTimeMS}ms`
             },        
             cssClasses: {
                 text: 'text-muted',
@@ -188,6 +198,21 @@ document.addEventListener('DOMContentLoaded', function() {
         overlay.classList.remove('active');
         document.body.style.overflow = '';
     });
+
+    document.querySelectorAll('.skip-sidebar, .block-layered-nav .typesense-close-btn').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-target-element');
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.classList.toggle('skip-content');
+                /* if(!targetElement.classList.contains('skip-content')) {
+                } */
+                
+            }
+        });
+    });
+    
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && overlay.classList.contains('active')) {

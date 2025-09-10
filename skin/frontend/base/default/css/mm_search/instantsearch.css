@@ -6,7 +6,7 @@
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: 2147483500;
+    z-index: 999999;
     overflow: hidden;
     background: #fff;
     overflow-y: auto;
@@ -90,12 +90,86 @@
 .typesense-main-content {
     display: flex;
     gap: 30px;
+    .skip-content {
+        background: none;
+    }
 }
-
+.typesense-main-content .block-layered-nav {
+    position: fixed;
+    background: #fff;
+    width: 100vw;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10000;
+    margin: 0 auto;
+    height: 100%;
+    padding: 0 20px;
+    .block-content {
+        margin-top: 0;
+        & > dl > dd {
+            display: inherit;
+        }
+    }
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 10px;
+    }
+}
+.typesense-overlay.active .skip-links {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 9999999;
+    margin: 0 auto;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+    
+.skip-sidebar {
+    align-items: center;
+    display: flex;
+    
+    gap: 4px;
+    justify-content: center;
+    box-shadow: rgba(49, 36, 133, 0.15) 0px 6px 20px 0px;
+    height: 44px;
+    line-height: 42px;
+    text-align: center;
+    border-radius: 22px;
+    &:hover {
+        opacity: 1 !important;
+    }
+    .label {
+        display: inherit !important
+    }
+    
+}
+@media only screen and (min-width: 771px) {
+    .typesense-main-content .block-layered-nav {
+        display: inherit;
+        width: auto;
+        position: relative;
+        header {
+            display: none;
+        }
+    }
+    .skip-sidebar {
+        display: none;
+    } 
+}
 .typesense-facets {
     width: 250px;
     flex-shrink: 0;
 }
+
 
 .typesense-results {
     flex: 1;
