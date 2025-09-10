@@ -1,6 +1,5 @@
 /* Stili per l'overlay di ricerca */
 .typesense-overlay {
-    display: none;
     position: fixed;
     top: 0;
     right: 0;
@@ -10,10 +9,13 @@
     overflow: hidden;
     background: #fff;
     overflow-y: auto;
+    max-height: 0;
+    transition: max-height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .typesense-overlay.active {
-    display: block;
+    padding: 0 10px;
+    max-height: 100%;
 }
 
 .typesense-overlay-header {
