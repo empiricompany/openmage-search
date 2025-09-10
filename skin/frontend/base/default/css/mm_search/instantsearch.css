@@ -311,13 +311,6 @@
 .ais-InfiniteHits-loadMore {
     display: block;
     margin: 20px auto 0 auto;
-    padding: 10px 20px;
-    background-color: #3366cc;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
 }
 
 /* Stili per la barra di ricerca principale */
