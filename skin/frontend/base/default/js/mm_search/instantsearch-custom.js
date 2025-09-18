@@ -126,7 +126,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 empty: 'Nessun risultato trovato',
                 item: (hit, { html, components }) => {                    
                     // Usa l'immagine ridimensionata se disponibile
-                    let imageUrl = '/skin/frontend/base/default/images/catalog/product/placeholder/image.jpg';
+                    const placeholderUrl = `${window.location.origin}/skin/frontend/base/default/images/catalog/product/placeholder/image.jpg`;
+                    let imageUrl = placeholderUrl;
+                    if (hit.thumbnail_medium) {
+                        imageUrl = hit.thumbnail_medium;
+                    } else if (hit.thumbnail_small) {
+                        imageUrl = hit.thumbnail_small;
+                    } else if (hit.thumbnail) {
+                        imageUrl = `/media/catalog/product${hit.thumbnail}`;
+                    }
                     if (hit.thumbnail_medium) {
                         imageUrl = hit.thumbnail_medium;
                     } else if (hit.thumbnail_small) {
@@ -145,10 +153,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     
                     const price = hit.price ? `${hit.price} €` : 'Prezzo non disponibile';
-                    
+                    const handleImageError = (e) => {
+                        if (e.target.src === placeholderUrl) {
+                            return;
+                        }
+                        e.target.onerror = null;
+                        e.target.src = placeholderUrl;
+                    };
                     return html`
                         <a href="${productUrl}" class="product-image">
-                            <img src="${imageUrl}" alt="${hit.name || 'Prodotto'}" />
+                            <img src="${imageUrl}" alt="${hit.name || 'Prodotto'}"
+                            onerror=${handleImageError} />
                         </a>
                         <div class="">
                             <h2 class="product-name">
