@@ -39,21 +39,15 @@
                 </action>
             </block>
             
-            <!-- Create a new head block to use addItem for theme-aware path -->
-            <block type="page/html_head" name="mm_search.lazy_scripts" as="mm_search_lazy_scripts">
-                <action method="addItem">
-                    <type>skin_js</type>
-                    <name>js/mm_search/instantsearch-custom.js</name>
-                    <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>
-                </action>
+            <block type="mm_search/script" name="mm_search.instantsearch.custom_js_lazy" after="mm_search.instantsearch.engine_config" template="mm/search/script.phtml">
+                <action method="setFile"><file>js/mm_search/instantsearch-custom.js</file></action>
+                <action method="setScriptType"><type>text/mm-instantsearch-lazy</type></action>
             </block>
 
             <!-- Loader script -->
-            <block type="page/html_head" name="mm_search.loader_script" as="mm_search_loader_script">
-                <action method="addItem">
-                    <type>skin_js</type>
-                    <name>js/mm_search/instantsearch-loader.js</name>
-                </action>
+            <block type="mm_search/script" name="mm_search.instantsearch.loader" after="mm_search.instantsearch.custom_js_lazy" template="mm/search/script.phtml">
+                <action method="setFile"><file>js/mm_search/instantsearch-loader.js</file></action>
+                <action method="setScriptType"><type>text/javascript</type></action>
             </block>
         </reference>
     </mm_search_instantsearch>
