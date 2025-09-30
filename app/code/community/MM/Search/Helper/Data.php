@@ -37,6 +37,44 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * Get instant search adapter JS library name
+     * @return string
+     */
+    public function getInstantSearchAdapterJs($storeId = null): string
+    {
+        if(! $this->isEnabled($storeId)) {
+            return '';
+        }
+        $engineType = $this->getEngineType($storeId);
+        if (empty($engineType)) {
+            return '';
+        }
+        $factory = Mage::getSingleton('mm_search/api_factory');
+        $adapterClass = $factory->getEngineClassName($engineType);
+        return sprintf('js/mm_search/%s', $adapterClass::getInstantSearchAdapterJs());
+    }
+
+    /**
+     * Get engine config template path
+     *
+     * @param null $storeId
+     * @return string
+     */
+    public function getEngineConfigTemplate($storeId = null): string
+    {
+        if (!$this->isEnabled($storeId)) {
+            return '';
+        }
+
+        $engineType = $this->getEngineType($storeId);
+        if (empty($engineType)) {
+            return '';
+        }
+
+        return sprintf('mm/search/instantsearch/config/%s.phtml', $engineType);
+    }
+
+    /**
      * Get search only API key
      *
      * @param int|null $storeId Store ID

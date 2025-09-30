@@ -29,4 +29,9 @@ class MM_Search_Model_Api_Adapter_Meilisearch extends MM_Search_Model_Api_Adapte
     {
         return 'meilisearch';
     }
+
+    public static function getInstantSearchAdapterJs(): string
+    {
+        return 'instant-meilisearch.umd.min.js';
+    }
 }

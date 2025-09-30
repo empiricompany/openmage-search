@@ -1,4 +1,3 @@
-document.addEventListener('DOMContentLoaded', function() {    
     const searchClient = window.instantSearchConfig.instantsearchAdapter.searchClient;
     const search = instantsearch({
         indexName: window.instantSearchConfig.collectionName,
@@ -252,4 +251,3 @@ document.addEventListener('DOMContentLoaded', function() {
     search.on('error', function(error) {
         console.error('Search error:', error);
     });
-});

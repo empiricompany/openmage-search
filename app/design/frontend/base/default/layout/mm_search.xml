@@ -7,34 +7,54 @@
                 <type>skin_css</type>
                 <name>css/mm_search/instantsearch/theme/reset.css</name>
             </action>
-            <!-- <action method="addItem">
-                <type>skin_css</type>
-                <name>css/mm_search/instantsearch/theme/satellite.css</name>
-            </action> -->
             <action method="addItem">
                 <type>skin_css</type>
                 <name>css/mm_search/instantsearch.css</name>
             </action>
+            <!-- Core libraries loaded lazily in head -->
             <action method="addItem">
                 <type>skin_js</type>
                 <name>js/mm_search/instantsearch.min.js</name>
+                <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>
             </action>
             <action method="addItem">
                 <type>skin_js</type>
-                <name>js/mm_search/typesense-instantsearch-adapter.min.js</name>
-            </action>
-            <action method="addItem">
-                <type>skin_js</type>
-                <name>js/mm_search/instant-meilisearch.umd.min.js</name>
-            </action>
-            <action method="addItem">
-                <type>skin_js</type>
-                <name>js/mm_search/instantsearch-custom.js</name>
+                <name helper="mm_search/getInstantSearchAdapterJs" />
+                <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>
             </action>
         </reference>
+
+        <!-- Header search block replacement with instant search template -->
         <reference name="header">
             <remove name="top.search" />
             <block type="mm_search/instantsearch" name="mm_search.search" as="topSearch" template="mm/search/instantsearch.phtml"/>
+        </reference>
+        
+        <reference name="before_body_end">
+            <!-- Lazy-loaded configuration -->
+            <block type="mm_search/instantsearch" name="mm_search.instantsearch.config" template="mm/search/instantsearch/config.phtml" />
+            <block type="mm_search/instantsearch" name="mm_search.instantsearch.engine_config" after="mm_search.instantsearch.config">
+                <action method="setTemplate">
+                    <template helper="mm_search/getEngineConfigTemplate" />
+                </action>
+            </block>
+            
+            <!-- Create a new head block to use addItem for theme-aware path -->
+            <block type="page/html_head" name="mm_search.lazy_scripts" as="mm_search_lazy_scripts">
+                <action method="addItem">
+                    <type>skin_js</type>
+                    <name>js/mm_search/instantsearch-custom.js</name>
+                    <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>
+                </action>
+            </block>
+
+            <!-- Loader script -->
+            <block type="page/html_head" name="mm_search.loader_script" as="mm_search_loader_script">
+                <action method="addItem">
+                    <type>skin_js</type>
+                    <name>js/mm_search/instantsearch-loader.js</name>
+                </action>
+            </block>
         </reference>
     </mm_search_instantsearch>
 </layout>

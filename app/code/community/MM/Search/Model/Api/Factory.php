@@ -50,7 +50,7 @@ class MM_Search_Model_Api_Factory
      * @return CmsIg\Seal\Adapter\AdapterInterface
      * @throws Mage_Core_Exception
      */
-    public function createAdapter(?int $storeId): CmsIg\Seal\Adapter\AdapterInterface
+    public function createAdapter(?int $storeId = null): CmsIg\Seal\Adapter\AdapterInterface
     {
         $engineType = $this->_helper->getEngineType($storeId);
         
@@ -107,6 +107,15 @@ class MM_Search_Model_Api_Factory
     public function getSupportedEngineTypes(): array
     {
         return array_keys($this->_engineAdapterMap);
+    }
+
+    /**
+     * Get engine adapter class name for the specified engine type
+     * @return array<string, class-string<MM_Search_Model_Api_AdapterInterface>> Map of engine types to adapter class names
+     */
+    public function getEngineClassName(string $engineType = null): string
+    {
+        return $this->_engineAdapterMap[$engineType];
     }
 
     /**
