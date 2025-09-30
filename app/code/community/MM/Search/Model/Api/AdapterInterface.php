@@ -19,4 +19,9 @@ interface MM_Search_Model_Api_AdapterInterface
      * Get engine type
      */
     public static function getType(): string;
+
+    /**
+     * Get library name
+     */
+    public static function getInstantSearchAdapterJs(): string;
 }

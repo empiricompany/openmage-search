@@ -45,4 +45,9 @@ class MM_Search_Model_Api_Adapter_Typesense extends MM_Search_Model_Api_Adapter_
     {
         return 'typesense';
     }
+
+    public static function getInstantSearchAdapterJs(): string
+    {
+        return 'typesense-instantsearch-adapter.min.js';
+    }
 }
