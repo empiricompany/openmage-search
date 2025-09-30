@@ -27,11 +27,26 @@
         for (const script of lazyScripts) {
             await executeScript(script);
         }
+        overlay.classList.add('active');
+        // remove x-clock
+        overlay.removeAttribute('x-cloak');
+        document.body.style.overflow = 'hidden';
+        
+        if (!searchStarted) {
+            try {
+                //console.log('Starting InstantSearch...');
+                search.start();
+                searchStarted = true;
+                //console.log('InstantSearch started successfully');
+            } catch (error) {
+                console.error('Error starting InstantSearch:', error);
+            }
+        }
     };
 
-    const triggerEvents = ['focus', 'scroll', 'mousemove', 'touchstart'];
+    const triggerEvents = ['focus',' click'];
     triggerEvents.forEach(event => {
-        const target = event === 'focus' ? searchInput : window;
+        const target = event === 'focus' || event === 'click' ? searchInput : document;
         target.addEventListener(event, loadScripts, { once: true });
     });
 })();
