@@ -150,4 +150,15 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     {
         return (int) Mage::getStoreConfig(self::XML_PATH_INSTANTSEARCH_CACHE, $storeId);
     }
+
+    /**
+     * Get skin URL for a file, respecting theme fallback.
+     *
+     * @param string $file
+     * @return string
+     */
+    public function getSkinUrl(string $file): string
+    {
+        return Mage::getDesign()->getSkinUrl($file);
+    }
 }
