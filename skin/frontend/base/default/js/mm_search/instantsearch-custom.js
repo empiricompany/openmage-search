@@ -151,7 +151,38 @@
                         }
                     }
                     
-                    const price = hit.price ? `${hit.price} €` : 'Prezzo non disponibile';
+                    let newBadge = null;
+                    const now = new Date();
+                    
+                    const fromDate = hit.news_from_date ? new Date(hit.news_from_date) : null;
+                    const toDate = hit.news_to_date ? new Date(hit.news_to_date) : null;
+                    
+                    const isNew = (
+                        (fromDate && now >= fromDate) && 
+                        (!toDate || now <= toDate)
+                    );
+                    
+                    if (isNew) {
+                        newBadge = html`<span class="badges__new">NOVITÀ</span>`;
+                    }
+                    let priceHtml, discountBadge;
+                    if (hit.price) {
+                        if (hit.special_price && hit.special_price < hit.price) {
+                            priceHtml = html`
+                                <span class="old-price">
+                                    <span class="price">${hit.price} €</span>
+                                </span>
+                                <span class="special-price">
+                                    <span class="price">${hit.special_price} €</span>
+                                </span>`;
+                            let discount = ((hit.price - hit.special_price) / hit.price) * 100;
+                            discountBadge = html`<span class="badges__discount">-${Math.round(discount)}%</span>`;
+                        } else {
+                            priceHtml = html`<span class="price">${hit.price} €</span>`;
+                        }
+                    } else {
+                        priceHtml = html`Prezzo non disponibile`;
+                    }
                     const handleImageError = (e) => {
                         if (e.target.src === placeholderUrl) {
                             return;
@@ -160,6 +191,10 @@
                         e.target.src = placeholderUrl;
                     };
                     return html`
+                        <div class="badges">
+                            ${newBadge || ''}
+                            ${discountBadge || ''}
+                        </div>
                         <a href="${productUrl}" class="product-image">
                             <img src="${imageUrl}" alt="${hit.name || 'Prodotto'}"
                             onerror=${handleImageError} />
@@ -174,9 +209,7 @@
                                 SKU: ${components.Highlight({ hit, attribute: 'sku' })}
                             </p>
                             <div class="price-box">
-                                <p class="product-price">
-                                    <span class="price">${price}</span>
-                                </p>
+                                ${priceHtml}
                             </div>
                         </div>
                     `;
