@@ -38,7 +38,8 @@ class MM_Search_Model_Reindex_Provider_Product implements ReindexProviderInterfa
             $this->_collection = Mage::getResourceModel('catalog/product_collection')
                 ->setStoreId($this->storeId)
                 ->addAttributeToSelect($this->_helperSchema->getSearchableAttributes()->getColumnValues('attribute_code'))
-                ->addAttributeToSelect(['thumbnail', 'url_key'])
+                ->addAttributeToSelect(['thumbnail', 'url_key','news_from_date', 'new_to_date'])
+                ->addPriceData()
                 ->addUrlRewrite()
                 ->setVisibility([
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,

@@ -248,6 +248,32 @@
 #typesense-hits {
     margin-bottom: 30px;
 }
+.badges {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    gap: 4px;
+    > span {
+        display: block;
+        padding: 2px 6px;
+        font-size: 12px;
+        font-weight: bold;
+        border-radius: 3px 0 0 3px;
+        text-transform: uppercase;
+    }
+    > span.badges__discount {
+        background-color: #ff0000;
+        color: #fff;
+    }
+    > span.badges__new {
+        background-color: #0073e6;
+        color: #fff;
+    }
+}
 
 /* Stili per la paginazione */
 #typesense-pagination {
