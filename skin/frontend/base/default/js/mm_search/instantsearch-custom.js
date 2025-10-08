@@ -178,7 +178,9 @@
                             let discount = ((hit.price - hit.special_price) / hit.price) * 100;
                             discountBadge = html`<span class="badges__discount">-${Math.round(discount)}%</span>`;
                         } else {
-                            priceHtml = html`<span class="price">${hit.price} €</span>`;
+                            priceHtml = html`<span class="regular-price">
+                                <span class="price">${hit.price} €</span>
+                            </span>`;
                         }
                     } else {
                         priceHtml = html`Prezzo non disponibile`;
