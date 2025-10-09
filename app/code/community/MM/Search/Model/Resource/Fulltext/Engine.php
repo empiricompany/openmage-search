@@ -64,6 +64,7 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
 
         try {
             // it's full reindex, so drop index if no entities
+            $dropIndex = false;
             if (empty($entityIndexes)) {
                 $dropIndex = true;
             }
