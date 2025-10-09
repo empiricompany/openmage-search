@@ -43,9 +43,6 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
      */
     public function getCompleteProductData(Mage_Catalog_Model_Product $product, int $storeId): array
     {
-        // Start with base data
-        $productData = $this->getBaseProductData($product, $storeId);
-
         // Add attribute data
         $attributeCollection = $this->getSearchableAttributes();
 
@@ -53,6 +50,11 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             $code = $attribute->getAttributeCode();
             $productData[$code] = $this->getAttributeValue($product, $attribute);
         }
+
+        // Override with base data
+        $productData =array_merge($productData,
+            $this->getBaseProductData($product, $storeId)
+        );
 
         return $productData;
     }
@@ -271,6 +273,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
      */
     public function getBaseProductData(Mage_Catalog_Model_Product $product, int $storeId): array
     {
+        $product->setStoreId($storeId);
         $data = [];
         $definitions = $this->getBaseFieldDefinitions();
 
