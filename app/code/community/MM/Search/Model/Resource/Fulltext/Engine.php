@@ -63,7 +63,11 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
         }
 
         try {
-            $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: false, identifiers: array_keys($entityIndexes));
+            // it's full reindex, so drop index if no entities
+            if (empty($entityIndexes)) {
+                $dropIndex = true;
+            }
+            $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: $dropIndex, identifiers: array_keys($entityIndexes));
         } catch (Exception $e) {
             Mage::logException($e);
         }
