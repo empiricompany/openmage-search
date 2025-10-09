@@ -44,6 +44,9 @@ class MM_Search_Model_Reindex_Provider_Product implements ReindexProviderInterfa
                 ->setVisibility([
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH
+                ])
+                ->addAttributeToFilter('status', [
+                    'eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED
                 ]);
 
             if (!empty($entity_ids)) {
