@@ -126,7 +126,8 @@ class MM_Search_Model_Api
     public function reindex(bool $dropIndex = false, array $identifiers = []): static
     {
         $collectionName = $this->getCollectionName();
-        if (Mage::registry("MM_SEARCH_REINDEX_".$collectionName."_".$this->storeId)) {
+        $hash = md5(json_encode([$this->storeId, $collectionName, $dropIndex, $identifiers]));
+        if (Mage::registry("MM_SEARCH_REINDEX_".$hash)) {
             return $this;
         }
 
@@ -152,7 +153,7 @@ class MM_Search_Model_Api
             Mage::helper('mm_search')->__('Collection "%s" was reindex on %s.', $collectionName, ucfirst($engineType))
         );
 
-        Mage::register("MM_SEARCH_REINDEX_".$collectionName."_".$this->storeId, true);
+        Mage::register("MM_SEARCH_REINDEX_".$hash, true);
         return $this;
     }
 
