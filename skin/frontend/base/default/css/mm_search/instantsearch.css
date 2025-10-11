@@ -1,32 +1,45 @@
 /* Stili per l'overlay di ricerca */
 .typesense-overlay {
-    display: none;
     position: fixed;
     top: 0;
+    right: 0;
+    bottom: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    z-index: 999999;
+    overflow: hidden;
     background: #fff;
-    z-index: 9999;
-    padding: 20px;
-    box-sizing: border-box;
     overflow-y: auto;
+    max-height: 0;
+    transition: max-height 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .typesense-overlay.active {
-    display: block;
+    padding: 0 10px;
+    max-height: 100%;
 }
 
 .typesense-overlay-header {
     display: flex;
     align-items: center;
     gap: 20px;
-    margin-bottom: 20px;
     padding: 10px;
     background: #fff;
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 99;
+}
+.typesense-overlay-header .logo {
+    display: none;
+}
+@media (min-width: 770px) {
+    .typesense-overlay-header .logo {
+        display: block;
+        width: auto;
+        min-height: unset;
+    }
+    .typesense-overlay-header .logo img {
+        max-height: 40px;
+    }
 }
 
 #typesense-searchbox {
@@ -66,7 +79,7 @@
     font-size: 14px;
     color: #666;
 }
-
+#typesense-per-page select,
 #typesense-sort-by select {
     padding: 5px 10px;
     border: 1px solid #ddd;
@@ -79,12 +92,87 @@
 .typesense-main-content {
     display: flex;
     gap: 30px;
+    .skip-content {
+        background: none;
+    }
 }
-
+.typesense-main-content .block-layered-nav {
+    position: fixed;
+    background: #fff;
+    width: 100vw;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10000;
+    margin: 0 auto;
+    height: 100%;
+    padding: 0 20px;
+    .block-content {
+        margin-top: 0;
+        & > dl > dd {
+            display: inherit;
+        }
+    }
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 10px;
+    }
+}
+.typesense-overlay.active .skip-links {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 9999999;
+    margin: 0 auto;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+}
+    
+.skip-sidebar {
+    align-items: center;
+    display: flex;
+    
+    gap: 4px;
+    justify-content: center;
+    box-shadow: rgba(49, 36, 133, 0.15) 0px 6px 20px 0px;
+    height: 44px;
+    line-height: 42px;
+    text-align: center;
+    border-radius: 22px;
+    &:hover {
+        opacity: 1 !important;
+    }
+    .label {
+        display: inherit !important
+    }
+    
+}
+@media only screen and (min-width: 771px) {
+    .typesense-main-content .block-layered-nav {
+        display: inherit;
+        width: auto;
+        z-index: unset;
+        position: relative;
+        header {
+            display: none;
+        }
+    }
+    .skip-sidebar {
+        display: none;
+    } 
+}
 .typesense-facets {
     width: 250px;
     flex-shrink: 0;
 }
+
 
 .typesense-results {
     flex: 1;
@@ -140,6 +228,9 @@
     font-size: 13px;
     margin-top: 5px;
 }
+.typesense-facets .ais-RefinementList-showMore--disabled {
+    display: none;
+}
 
 .typesense-facets .ais-RefinementList-searchBox {
     margin-bottom: 10px;
@@ -157,6 +248,32 @@
 #typesense-hits {
     margin-bottom: 30px;
 }
+.badges {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: end;
+    gap: 4px;
+    > span {
+        display: block;
+        padding: 2px 6px;
+        font-size: 12px;
+        font-weight: bold;
+        border-radius: 3px 0 0 3px;
+        text-transform: uppercase;
+    }
+    > span.badges__discount {
+        background-color: #ff0000;
+        color: #fff;
+    }
+    > span.badges__new {
+        background-color: #0073e6;
+        color: #fff;
+    }
+}
 
 /* Stili per la paginazione */
 #typesense-pagination {
@@ -170,6 +287,12 @@
     position: relative;
     display: flex;
     align-items: center;
+}
+
+.ais-SearchBox-form input[type="search"] {
+    width: 100%;
+    height: 40px;
+    padding: 0 40px 0 40px;
 }
 
 .ais-SearchBox-input {
@@ -199,12 +322,13 @@
 
 .ais-SearchBox-reset {
     position: absolute;
-    right: 40px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     padding: 0;
+    line-height: 0;
     cursor: pointer;
 }
 
@@ -213,12 +337,17 @@
     height: 16px;
     fill: #666;
 }
+.ais-InfiniteHits-loadMore {
+    display: block;
+    margin: 20px auto 0 auto;
+}
 
 /* Stili per la barra di ricerca principale */
+.ais-SearchBox ,
 #search_mini_form {
     position: relative;
 }
-
+.ais-SearchBox:before,
 #search_mini_form:before {
     content: '';
     position: absolute;
@@ -232,7 +361,7 @@
     background-size: contain;
     z-index: 1;
 }
-
+.ais-SearchBox input,
 #search_mini_form input {
     padding-left: 35px;
 }

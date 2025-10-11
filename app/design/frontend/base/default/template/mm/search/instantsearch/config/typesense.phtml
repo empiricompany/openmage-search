@@ -1,0 +1,19 @@
+<script type="text/mm-instantsearch-lazy">
+    window.instantSearchConfig.instantsearchAdapter = new TypesenseInstantSearchAdapter({
+        server: {
+            apiKey: window.instantSearchConfig.apiKey,
+            nodes: [{
+                host: window.instantSearchConfig.host,
+                path: window.instantSearchConfig.path,
+                protocol: window.instantSearchConfig.protocol
+            }],
+            cacheSearchResultsForSeconds: window.instantSearchConfig.cacheSearchResultsForSeconds,
+        },
+        additionalSearchParameters: {
+            query_by: 'name,short_description,sku',
+            highlight_full_fields: 'name,short_description,sku',
+            per_page: 12,
+            facet_by: ['category_names', ...window.instantSearchConfig.facetBy].join(','),
+        }
+    });
+</script>

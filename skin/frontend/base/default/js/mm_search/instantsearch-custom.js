@@ -1,39 +1,15 @@
-/**
- * Implementazione di InstantSearch.js per Typesense
- */
-document.addEventListener('DOMContentLoaded', function() {    
-    // Inizializza l'adapter Typesense per InstantSearch
-    const typesenseInstantsearchAdapter = new TypesenseInstantSearchAdapter({
-        server: {
-            apiKey: window.typesenseConfig.apiKey,
-            nodes: [{
-                host: window.typesenseConfig.host,
-                path: window.typesenseConfig.path,
-                protocol: window.typesenseConfig.protocol
-            }],
-            cacheSearchResultsForSeconds: window.typesenseConfig.cacheSearchResultsForSeconds,
-        },
-        additionalSearchParameters: {
-            query_by: 'name,short_description,sku',
-            highlight_full_fields: 'name,short_description,sku',
-            per_page: 15,
-            facet_by: ['category_names', ...window.typesenseConfig.facetBy].join(','),
-        }
-    });
-
-    const searchClient = typesenseInstantsearchAdapter.searchClient;
-
+    const searchClient = window.instantSearchConfig.instantsearchAdapter.searchClient;
     const search = instantsearch({
-        indexName: window.typesenseConfig.collectionName,
+        indexName: window.instantSearchConfig.collectionName,
         searchClient,
+        numberLocale: 'it',
         initialUiState: {
-            [window.typesenseConfig.collectionName]: {
+            [window.instantSearchConfig.collectionName]: {
                 query: document.getElementById('search').value
             }
         }
     });
 
-    // Configura i widget di InstantSearch
     search.addWidgets([
         instantsearch.widgets.searchBox({
             container: '#typesense-searchbox',
@@ -42,29 +18,55 @@ document.addEventListener('DOMContentLoaded', function() {
             searchAsYouType: true,
             showReset: false,
             showSubmit: false,
-            showLoadingIndicator: true
+            showLoadingIndicator: true,
+            cssClasses: {
+                root: 'search_mini_form',
+                input: 'input-text',
+            },
         }),
 
-        // Aggiungi il widget per mostrare il numero di risultati
         instantsearch.widgets.stats({
             container: '#typesense-stats',
             templates: {
                 text: ({ nbHits, processingTimeMS }) => 
-                    `${nbHits} risultati trovati in ${processingTimeMS}ms`
-            }
+                    `<strong>${nbHits}</strong> risultati trovati in ${processingTimeMS}ms`
+            },        
+            cssClasses: {
+                text: 'text-muted',
+            },
         }),
-
-        // Aggiungi il widget per l'ordinamento
+        instantsearch.widgets.stats({
+            container: '#typesense-stats2',
+            templates: {
+                text: ({ nbHits, processingTimeMS }) => 
+                    `<strong>${nbHits}</strong> risultati trovati in ${processingTimeMS}ms`
+            },        
+            cssClasses: {
+                text: 'text-muted',
+            },
+        }),
+        instantsearch.widgets.hitsPerPage({
+            container: '#typesense-per-page',
+            items: [
+            { label: '12 per page', value: 12, default: true },
+            { label: '24 per page', value: 24 },
+            ],
+            cssClasses: {
+                select: '',
+            },
+        }),
         instantsearch.widgets.sortBy({
             container: '#typesense-sort-by',
             items: [
-                { label: 'Rilevanza', value: window.typesenseConfig.collectionName },
-                { label: 'Prezzo (Da minore a maggiore)', value: `${window.typesenseConfig.collectionName}/sort/price:asc` },
-                { label: 'Prezzo (Da maggiore a minore)', value: `${window.typesenseConfig.collectionName}/sort/price:desc` }
-            ]
+                { label: 'Rilevanza', value: window.instantSearchConfig.collectionName },
+                { label: 'Prezzo (Da minore a maggiore)', value: `${window.instantSearchConfig.collectionName}/sort/price:asc` },
+                { label: 'Prezzo (Da maggiore a minore)', value: `${window.instantSearchConfig.collectionName}/sort/price:desc` }
+            ],
+            cssClasses: {
+                root: 'sort-by',
+            },
         }),
 
-        // Aggiungi il widget per i facet di categoria
         instantsearch.widgets.refinementList({
             container: '#typesense-categories',
             attribute: 'category_names',
@@ -80,14 +82,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }),
 
-        // Aggiungi widget dinamici per i facet configurati
-        ...window.typesenseConfig.facetBy.map(facet => {
+        ...window.instantSearchConfig.facetBy.map(facet => {
             return facet === 'price' 
                 ? instantsearch.widgets.rangeSlider({
                     container: `#typesense-${facet}`,
                     attribute: facet,
+                    pips: false,
+                    tooltips: true,
                     templates: {
                         header: 'Prezzo'
+                    },
+                    cssClasses: {
+                        root: 'price-range-slider',
                     }
                 })
                 : instantsearch.widgets.refinementList({
@@ -105,14 +111,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         ),
 
-        // Sostituisci hits con infiniteHits per implementare l'infinite scroll
         instantsearch.widgets.infiniteHits({
             container: '#typesense-hits',
+            cssClasses: {
+                list: [
+                'products-grid products-grid--max-6-col',
+                ],
+                item: 'item',
+                loadMore: 'button',
+                disabledLoadMore: 'button'
+            },
             templates: {
                 empty: 'Nessun risultato trovato',
                 item: (hit, { html, components }) => {                    
                     // Usa l'immagine ridimensionata se disponibile
-                    let imageUrl = '/skin/frontend/base/default/images/catalog/product/placeholder/image.jpg';
+                    const placeholderUrl = `${window.location.origin}/skin/frontend/base/default/images/catalog/product/placeholder/image.jpg`;
+                    let imageUrl = placeholderUrl;
+                    if (hit.thumbnail_medium) {
+                        imageUrl = hit.thumbnail_medium;
+                    } else if (hit.thumbnail_small) {
+                        imageUrl = hit.thumbnail_small;
+                    } else if (hit.thumbnail) {
+                        imageUrl = `/media/catalog/product${hit.thumbnail}`;
+                    }
                     if (hit.thumbnail_medium) {
                         imageUrl = hit.thumbnail_medium;
                     } else if (hit.thumbnail_small) {
@@ -121,41 +142,78 @@ document.addEventListener('DOMContentLoaded', function() {
                         imageUrl = `/media/catalog/product${hit.thumbnail}`;
                     }
                     
-                    // Costruisci l'URL del prodotto con il prefisso dello store code
                     let productUrl = '#';
                     if (hit.request_path) {
-                        // Se c'è uno store code, lo aggiungiamo come prefisso
-                        if (window.typesenseConfig.storeCode) {
-                            productUrl = `/${window.typesenseConfig.storeCode}/${hit.request_path}`;
+                        if (window.instantSearchConfig.storeCode) {
+                            productUrl = `/${window.instantSearchConfig.storeCode}/${hit.request_path}`;
                         } else {
                             productUrl = `/${hit.request_path}`;
                         }
                     }
                     
-                    // Formatta il prezzo
-                    const price = hit.price ? `${hit.price} €` : 'Prezzo non disponibile';
+                    let newBadge = null;
+                    const now = new Date();
                     
+                    const fromDate = hit.news_from_date ? new Date(hit.news_from_date) : null;
+                    const toDate = hit.news_to_date ? new Date(hit.news_to_date) : null;
+                    
+                    const isNew = (
+                        (fromDate && now >= fromDate) && 
+                        (!toDate || now <= toDate)
+                    );
+                    
+                    if (isNew) {
+                        newBadge = html`<span class="badges__new">NOVITÀ</span>`;
+                    }
+                    let priceHtml, discountBadge;
+                    if (hit.price) {
+                        if (hit.special_price && hit.special_price < hit.price) {
+                            priceHtml = html`
+                                <span class="old-price">
+                                    <span class="price">${hit.price} €</span>
+                                </span>
+                                <span class="special-price">
+                                    <span class="price">${hit.special_price} €</span>
+                                </span>`;
+                            let discount = ((hit.price - hit.special_price) / hit.price) * 100;
+                            discountBadge = html`<span class="badges__discount">-${Math.round(discount)}%</span>`;
+                        } else {
+                            priceHtml = html`<span class="regular-price">
+                                <span class="price">${hit.price} €</span>
+                            </span>`;
+                        }
+                    } else {
+                        priceHtml = html`Prezzo non disponibile`;
+                    }
+                    const handleImageError = (e) => {
+                        if (e.target.src === placeholderUrl) {
+                            return;
+                        }
+                        e.target.onerror = null;
+                        e.target.src = placeholderUrl;
+                    };
                     return html`
-                        <article>
-                            <a href="${productUrl}">
-                                <img src="${imageUrl}" alt="${hit.name || 'Prodotto'}" />
-                            </a>
-                            <div class="product-content">
-                                <h2 class="product-name">
-                                    <a href="${productUrl}">
-                                        ${components.Highlight({ hit, attribute: 'name' })}
-                                    </a>
-                                </h2>
-                                <p class="product-sku">
-                                    SKU: ${components.Highlight({ hit, attribute: 'sku' })}
-                                </p>
-                                <div class="price-box">
-                                    <p class="product-price">
-                                        <span class="price">${price}</span>
-                                    </p>
-                                </div>
+                        <div class="badges">
+                            ${newBadge || ''}
+                            ${discountBadge || ''}
+                        </div>
+                        <a href="${productUrl}" class="product-image">
+                            <img src="${imageUrl}" alt="${hit.name || 'Prodotto'}"
+                            onerror=${handleImageError} />
+                        </a>
+                        <div class="">
+                            <h2 class="product-name">
+                                <a href="${productUrl}">
+                                    ${components.Highlight({ hit, attribute: 'name' })}
+                                </a>
+                            </h2>
+                            <p class="product-sku">
+                                SKU: ${components.Highlight({ hit, attribute: 'sku' })}
+                            </p>
+                            <div class="price-box">
+                                ${priceHtml}
                             </div>
-                        </article>
+                        </div>
                     `;
                 },
                 showMoreText: 'Carica altri prodotti'
@@ -164,15 +222,13 @@ document.addEventListener('DOMContentLoaded', function() {
         })
     ]);
 
-    // Inizializza la ricerca quando l'overlay viene aperto
     const overlay = document.getElementById('typesense-overlay');
     const mainInput = document.getElementById('search');
     let searchStarted = false;
 
-    // Apri l'overlay al click sull'input
     mainInput.addEventListener('click', function() {
         overlay.classList.add('active');
-        document.body.style.overflow = 'hidden'; // Blocca lo scroll della pagina
+        document.body.style.overflow = 'hidden';
         
         if (!searchStarted) {
             try {
@@ -186,13 +242,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Chiudi l'overlay al click sul bottone di chiusura
     document.querySelector('.typesense-close-btn').addEventListener('click', function() {
         overlay.classList.remove('active');
-        document.body.style.overflow = ''; // Ripristina lo scroll della pagina
+        document.body.style.overflow = '';
     });
 
-    // Chiudi l'overlay premendo ESC
+    document.querySelectorAll('.skip-sidebar, .block-layered-nav .typesense-close-btn').forEach(function(link) {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-target-element');
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.classList.toggle('skip-content');
+                /* if(!targetElement.classList.contains('skip-content')) {
+                } */
+                
+            }
+        });
+    });
+    
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && overlay.classList.contains('active')) {
             overlay.classList.remove('active');
@@ -200,7 +269,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Sincronizza il valore dell'input principale con InstantSearch
     mainInput.addEventListener('input', function(e) {
         if (searchStarted) {
             try {
@@ -211,7 +279,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Debug degli eventi di ricerca
     search.on('render', function() {
         //console.log('Search results rendered');
     });
@@ -219,4 +286,3 @@ document.addEventListener('DOMContentLoaded', function() {
     search.on('error', function(error) {
         console.error('Search error:', error);
     });
-});

@@ -3,34 +3,52 @@
     <!-- This layout updates apply only if the module is enabled, see MM_Search_Model_Observer::addLayoutHandleIfEnabled() -->
     <mm_search_instantsearch>
         <reference name="head">
-            <!-- <action method="addItem">
-                <type>skin_css</type>
-                <name>css/mm_search/instantsearch/theme/reset.css</name>
-            </action> -->
             <action method="addItem">
                 <type>skin_css</type>
-                <name>css/mm_search/instantsearch/theme/satellite.css</name>
+                <name>css/mm_search/instantsearch/theme/reset.css</name>
             </action>
             <action method="addItem">
                 <type>skin_css</type>
                 <name>css/mm_search/instantsearch.css</name>
             </action>
+            <!-- Core libraries loaded lazily in head -->
             <action method="addItem">
                 <type>skin_js</type>
                 <name>js/mm_search/instantsearch.min.js</name>
+                <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>
             </action>
             <action method="addItem">
                 <type>skin_js</type>
-                <name>js/mm_search/typesense-instantsearch-adapter.min.js</name>
-            </action>
-            <action method="addItem">
-                <type>skin_js</type>
-                <name>js/mm_search/instantsearch-custom.js</name>
+                <name helper="mm_search/getInstantSearchAdapterJs" />
+                <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>
             </action>
         </reference>
+
+        <!-- Header search block replacement with instant search template -->
         <reference name="header">
             <remove name="top.search" />
             <block type="mm_search/instantsearch" name="mm_search.search" as="topSearch" template="mm/search/instantsearch.phtml"/>
+        </reference>
+        
+        <reference name="before_body_end">
+            <!-- Lazy-loaded configuration -->
+            <block type="mm_search/instantsearch" name="mm_search.instantsearch.config" template="mm/search/instantsearch/config.phtml" />
+            <block type="mm_search/instantsearch" name="mm_search.instantsearch.engine_config" after="mm_search.instantsearch.config">
+                <action method="setTemplate">
+                    <template helper="mm_search/getEngineConfigTemplate" />
+                </action>
+            </block>
+            
+            <block type="mm_search/script" name="mm_search.instantsearch.custom_js_lazy" after="mm_search.instantsearch.engine_config" template="mm/search/script.phtml">
+                <action method="setFile"><file>js/mm_search/instantsearch-custom.js</file></action>
+                <action method="setScriptType"><type>text/mm-instantsearch-lazy</type></action>
+            </block>
+
+            <!-- Loader script -->
+            <block type="mm_search/script" name="mm_search.instantsearch.loader" after="mm_search.instantsearch.custom_js_lazy" template="mm/search/script.phtml">
+                <action method="setFile"><file>js/mm_search/instantsearch-loader.js</file></action>
+                <action method="setScriptType"><type>text/javascript</type></action>
+            </block>
         </reference>
     </mm_search_instantsearch>
 </layout>

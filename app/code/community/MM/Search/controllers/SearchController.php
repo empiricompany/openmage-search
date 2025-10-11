@@ -8,7 +8,7 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
      * Proxy action for Typesense API
      * @return ?Mage_Core_Controller_Response_Http
      */
-    public function proxyAction()
+    public function proxyAction(): Mage_Core_Controller_Response_Http
     {
         try {
             /**
@@ -19,7 +19,11 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
             $apiKey = $helper->getSearchOnlyApiKey();
             $port = $helper->getPort();
             $protocol = $helper->getProtocol();
-            $url = "{$protocol}://{$host}:{$port}/multi_search";
+            $url = match($helper->getEngineType()) {
+                'typesense' => "{$protocol}://{$host}:{$port}/multi_search",
+                'meilisearch' => "{$protocol}://{$host}:{$port}/multi-search",
+                default => throw new Exception('Unsupported search engine type')
+            };
             
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
@@ -29,7 +33,8 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
             curl_setopt($ch, CURLOPT_POSTFIELDS, $requestBody);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'Content-Type: application/json',
-                'x-typesense-api-key: '.$apiKey
+                'x-typesense-api-key: '.$apiKey,
+                'Authorization: Bearer '.$apiKey,
             ]);
             
             $response = curl_exec($ch);
@@ -41,13 +46,12 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
                 ->setHeader('Access-Control-Allow-Origin', '*')
                 ->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
                 ->setHeader('Access-Control-Allow-Headers', 'Content-Type')
-                ->setHeader('Content-Type', 'application/json');
+                ->setHeader('Content-Type', 'application/json', true);
             
             if ($response === false) {
                 Mage::throwException('Failed to connect to Typesense');
             }
-            
-            $this->getResponse()
+            return $this->getResponse()
                 ->setHttpResponseCode($httpCode)
                 ->setBody($response);
                 
