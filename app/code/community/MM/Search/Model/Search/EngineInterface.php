@@ -41,7 +41,6 @@ interface MM_Search_Model_Search_EngineInterface
      *           'filterable' => bool,    // Can filter on this field?
      *           'sortable' => bool,      // Can sort by this field?
      *           'searchable' => bool,    // Is full-text searchable?
-     *           'optional' => bool       // Is field optional?
      *       ]
      *   ]
      * @return array Collection/Index information

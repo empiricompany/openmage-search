@@ -69,9 +69,6 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
                 $field['facet'] = true;
             }
             
-            // Add optional flag
-            $field['optional'] = isset($props['optional']) ? (bool)$props['optional'] : true;
-            
             $typesenseFields[] = $field;
         }
         

@@ -108,8 +108,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             'multiple' => $multiple,
             'filterable' => $filterable,
             'sortable' => $sortable,
-            'searchable' => $searchable,
-            'optional' => true
+            'searchable' => $searchable
         );
     }
 
