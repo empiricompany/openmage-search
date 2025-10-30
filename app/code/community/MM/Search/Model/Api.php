@@ -1,18 +1,25 @@
 <?php
-
-declare(strict_types=1);
-
+/**
+ * Search API Model
+ *
+ * Main business logic for search operations.
+ * Uses native Engine implementation via Factory pattern.
+ *
+ * @category   MM
+ * @package    MM_Search
+ * @author     Tony
+ */
 class MM_Search_Model_Api
 {
     /**
      * @var int|null
      */
-    protected ?int $storeId = null;
+    protected $_storeId = null;
 
     /**
      * @var string|null
      */
-    protected ?string $collectionName = null;
+    protected $_collectionName = null;
 
     /**
      * @var MM_Search_Helper_Data
@@ -20,40 +27,53 @@ class MM_Search_Model_Api
     protected $_helper;
 
     /**
-     * @var CmsIg\Seal\Adapter\AdapterInterface|null
+     * @var MM_Search_Model_Search_EngineInterface|null
      */
-    protected $_adapter = null;
+    protected $_engine = null;
 
     /**
      * Bulk size for reindexing
+     *
+     * @var int
      */
-    private int $_bulkSize = 1000;
+    protected $_bulkSize = 100;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         $this->_helper = Mage::helper('mm_search');
     }
 
     /**
-     * Get adapter instance
+     * Get search engine instance
      *
-     * @return CmsIg\Seal\Adapter\AdapterInterface
+     * Uses Factory to create appropriate engine (Typesense, Meilisearch, etc.)
+     * based on configuration.
+     *
+     * @return MM_Search_Model_Search_EngineInterface
      */
-    public function getAdapter(): CmsIg\Seal\Adapter\AdapterInterface
+    protected function _getEngine()
     {
-        return Mage::getSingleton('mm_search/api_factory')->createAdapter($this->storeId);
+        if (!$this->_engine) {
+            $factory = Mage::getSingleton('mm_search/api_factory');
+            $this->_engine = $factory->createEngine($this->_storeId);
+        }
+        return $this->_engine;
     }
 
     /**
      * Set store ID
      *
      * @param int|null $storeId
-     * @return MM_Search_Model_Api
+     * @return $this
      */
-    public function setStoreId(?int $storeId = null): static
+    public function setStoreId($storeId = null)
     {
-        $this->storeId = $storeId;
-        $this->collectionName = $this->_helper->getCollectionName($storeId);
+        $this->_storeId = $storeId;
+        $this->_collectionName = $this->_helper->getCollectionName($storeId);
+        $this->_engine = null; // Reset engine for new store
         return $this;
     }
 
@@ -62,19 +82,20 @@ class MM_Search_Model_Api
      *
      * @return int|null
      */
-    public function getStoreId(): ?int
+    public function getStoreId()
     {
-        return $this->storeId;
+        return $this->_storeId;
     }
 
     /**
      * Set collection name
+     *
      * @param string|null $collectionName
-     * @return static
+     * @return $this
      */
-    public function setCollectionName(?string $collectionName = null): static
+    public function setCollectionName($collectionName = null)
     {
-        $this->collectionName = $collectionName;
+        $this->_collectionName = $collectionName;
         return $this;
     }
 
@@ -83,37 +104,9 @@ class MM_Search_Model_Api
      *
      * @return string
      */
-    public function getCollectionName(): string
+    public function getCollectionName()
     {
-        return $this->_helper->getCollectionName($this->storeId);
-    }
-
-    /**
-     * Get search engine instance
-     *
-     * @return CmsIg\Seal\Engine
-     */
-    public function getEngine(): CmsIg\Seal\Engine
-    {
-        return new CmsIg\Seal\Engine(
-            $this->getAdapter(),
-            $this->getSchema(),
-        );
-    }
-
-    /**
-     * Get schema
-     *
-     * @return CmsIg\Seal\Schema\Schema
-     */
-    protected function getSchema(): CmsIg\Seal\Schema\Schema
-    {
-        $collectionName = $this->getCollectionName();
-        /**
-         * @var MM_Search_Helper_Schema $schemaHelper
-         */
-        $schemaHelper = Mage::helper('mm_search/schema');
-        return $schemaHelper->getCompleteSchema($collectionName);
+        return $this->_helper->getCollectionName($this->_storeId);
     }
 
     /**
@@ -121,39 +114,65 @@ class MM_Search_Model_Api
      *
      * @param bool $dropIndex Whether to drop the index before reindexing
      * @param array $identifiers Product IDs to reindex (empty for all)
-     * @return static
+     * @return $this
      */
-    public function reindex(bool $dropIndex = false, array $identifiers = []): static
+    public function reindex($dropIndex = false, $identifiers = array())
     {
         $collectionName = $this->getCollectionName();
-        $hash = md5(json_encode([$this->storeId, $collectionName, $dropIndex, $identifiers]));
-        if (Mage::registry("MM_SEARCH_REINDEX_".$hash)) {
+        
+        // Prevent duplicate reindex
+        $hash = md5(json_encode(array($this->_storeId, $collectionName, $dropIndex, $identifiers)));
+        if (Mage::registry("MM_SEARCH_REINDEX_" . $hash)) {
             return $this;
         }
 
-        // Create provider with the current store ID
-        $reindexProviders = [
-            new MM_Search_Model_Reindex_Provider_Product( $this->storeId)
-        ];
+        try {
+            $engine = $this->_getEngine();
+            
+            // Drop and recreate schema if requested
+            if ($dropIndex) {
+                $engine->dropCollection($collectionName);
+                
+                $schemaHelper = Mage::helper('mm_search/schema');
+                $fields = $schemaHelper->getAllSchemaFields();
+                $engine->createOrUpdateSchema($collectionName, $fields);
+            }
+            
+            // Get product data generator from indexer
+            $indexer = Mage::getModel('mm_search/indexer_product', $this->_storeId);
+            $documents = $indexer->getDocumentGenerator($identifiers);
+            
+            // Bulk index documents
+            $stats = $engine->bulkIndex($collectionName, $documents, $this->_bulkSize);
+            
+            // Show success message
+            $engineType = $this->_helper->getEngineType($this->_storeId);
+            Mage::getSingleton('adminhtml/session')->addSuccess(
+                Mage::helper('mm_search')->__(
+                    'Indexed %d products in collection "%s" using %s',
+                    $stats['count'],
+                    $collectionName,
+                    ucfirst($engineType)
+                )
+            );
+            
+            // Show errors if any
+            if (!empty($stats['errors'])) {
+                foreach ($stats['errors'] as $error) {
+                    Mage::getSingleton('adminhtml/session')->addError(
+                        Mage::helper('mm_search')->__('Indexing error: %s', $error)
+                    );
+                }
+            }
+            
+        } catch (Exception $e) {
+            Mage::logException($e);
+            Mage::getSingleton('adminhtml/session')->addError(
+                Mage::helper('mm_search')->__('Reindex failed: %s', $e->getMessage())
+            );
+        }
 
-        $reindexConfig = \CmsIg\Seal\Reindex\ReindexConfig::create()
-            ->withIndex($collectionName)
-            ->withBulkSize($this->_bulkSize)
-            ->withIdentifiers($identifiers)
-            ->withDropIndex($dropIndex);
-
-        $this->getEngine()->reindex($reindexProviders, $reindexConfig, function ($index, $count, $total) {
-            //Mage::log( sprintf("Reindexing %s: %s/%s", $index, $count, $total));
-        });
-
-        // Get engine type instead of adapter class name
-        $engineType = $this->_helper->getEngineType($this->storeId);
-
-        Mage::getSingleton('adminhtml/session')->addSuccess(
-            Mage::helper('mm_search')->__('Collection "%s" was reindex on %s.', $collectionName, ucfirst($engineType))
-        );
-
-        Mage::register("MM_SEARCH_REINDEX_".$hash, true);
+        Mage::register("MM_SEARCH_REINDEX_" . $hash, true);
         return $this;
     }
 
@@ -161,22 +180,30 @@ class MM_Search_Model_Api
      * Delete document from index
      *
      * @param string|int $identifier Document ID
-     * @return static
+     * @return $this
      */
-    public function deleteDocument($identifier): static
+    public function deleteDocument($identifier)
     {
-        $this->getEngine()->deleteDocument($this->getCollectionName(), $identifier);
+        try {
+            $engine = $this->_getEngine();
+            $engine->deleteDocument($this->getCollectionName(), (string)$identifier);
+        } catch (Exception $e) {
+            Mage::logException($e);
+        }
+        
         return $this;
     }
 
     /**
      * Update schema
      *
-     * @param Mage_Catalog_Model_Resource_Eav_Attribute|null $attribute Attribute to update
-     * @return static
+     * Triggers a full reindex with schema drop/recreate.
+     *
+     * @param Mage_Catalog_Model_Resource_Eav_Attribute|null $attribute Attribute to update (unused, kept for BC)
+     * @return $this
      */
-    public function updateSchema(?Mage_Catalog_Model_Resource_Eav_Attribute $attribute = null): static
+    public function updateSchema($attribute = null)
     {
-        return $this->reindex(dropIndex: true);
+        return $this->reindex(true);
     }
 }
