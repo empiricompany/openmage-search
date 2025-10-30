@@ -2,7 +2,7 @@
     "name": "empiricompany/openmage-search",
     "license": "MIT",
     "type": "magento-module",
-    "description": "Advanced search module for OpenMage using SEAL",
+    "description": "Advanced search module for OpenMage with native Typesense integration (multi-engine support)",
     "authors": [
         {
             "name": "Tony",
@@ -12,18 +12,19 @@
     "keywords": [
       "magento",
       "magento1",
-      "openmage"
+      "openmage",
+      "typesense",
+      "search",
+      "instantsearch"
     ],
     "require": {
-        "php": ">=8.0 <8.5",
+        "php": ">=7.4 <8.5",
         "composer-runtime-api": "^2.0",
         "magento-hackathon/magento-composer-installer": "*",
-        "cmsig/seal": "^0.12",
-        "php-http/curl-client": "^2.0",
-        "cmsig/seal-typesense-adapter": "^0.12"
+        "typesense/typesense-php": "^4.9"
     },
     "suggest": {
-        "cmsig/seal-meilisearch-adapter": "Adapter for integrating Meilisearch search engine with SEAL"
+        "meilisearch/meilisearch-php": "^1.0 - For Meilisearch search engine support"
     },
     "extra": {
         "map": [

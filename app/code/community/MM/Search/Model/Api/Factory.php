@@ -1,23 +1,25 @@
 <?php
-
-declare(strict_types=1);
-
-use Composer\InstalledVersions;
 /**
- * Factory for creating search engine adapters
+ * Factory for creating search engine instances
+ *
+ * Auto-discovers available engines based on installed classes.
+ * Supports multiple engines: Typesense (always), Meilisearch (if SDK installed), etc.
+ *
+ * @category   MM
+ * @package    MM_Search
+ * @author     Tony
  */
 class MM_Search_Model_Api_Factory
-{    
+{
     /**
      * @var MM_Search_Helper_Data
      */
     protected $_helper;
 
     /**
-     * @var array<string, class-string<MM_Search_Model_Api_AdapterInterface>> Map of engine types to adapter class names
-     * @see MM_Search_Model_Api_AdapterInterface
+     * @var array Map of engine types to engine class names
      */
-    protected array $_engineAdapterMap = [];
+    protected $_engineMap = array();
 
     /**
      * Constructor
@@ -25,64 +27,79 @@ class MM_Search_Model_Api_Factory
     public function __construct()
     {
         $this->_helper = Mage::helper('mm_search');
-        $this->_initEngineAdapterMap();
+        $this->_discoverEngines();
     }
 
     /**
-     * Initialize the engine adapter map
-     * 
+     * Auto-discover available engines
+     *
+     * Typesense is always available (required dependency).
+     * Other engines are registered if their SDK classes exist.
+     *
      * @return void
      */
-    protected function _initEngineAdapterMap(): void
+    protected function _discoverEngines()
     {
-        if (InstalledVersions::isInstalled('cmsig/seal-typesense-adapter')) {
-            $this->registerEngineAdapter(MM_Search_Model_Api_Adapter_Typesense::class);
+        // Typesense: always available (required dependency)
+        $this->registerEngine('MM_Search_Model_Search_Engine_Typesense');
+        
+        // Meilisearch: only if SDK is installed
+        if (class_exists('Meilisearch\Client')) {
+            $this->registerEngine('MM_Search_Model_Search_Engine_Meilisearch');
         }
-        if (InstalledVersions::isInstalled('cmsig/seal-meilisearch-adapter')) {
-            $this->registerEngineAdapter(MM_Search_Model_Api_Adapter_Meilisearch::class);
-        }
+        
+        // Future engines can be added here
+        // Example: Algolia
+        // if (class_exists('Algolia\AlgoliaSearch\SearchClient')) {
+        //     $this->registerEngine('MM_Search_Model_Search_Engine_Algolia');
+        // }
     }
 
     /**
-     * Create an adapter for the specified store ID
-     * 
+     * Create engine instance for the specified store
+     *
      * @param int|null $storeId Store ID
-     * @return CmsIg\Seal\Adapter\AdapterInterface
+     * @return MM_Search_Model_Search_EngineInterface
      * @throws Mage_Core_Exception
      */
-    public function createAdapter(?int $storeId = null): CmsIg\Seal\Adapter\AdapterInterface
+    public function createEngine($storeId = null)
     {
         $engineType = $this->_helper->getEngineType($storeId);
         
-        if (!isset($this->_engineAdapterMap[$engineType])) {
-            $supportedTypes = implode(', ', array_keys($this->_engineAdapterMap));
-            Mage::throwException(sprintf('Unsupported search engine type: %s. Supported types: %s', $engineType, $supportedTypes));
+        if (!isset($this->_engineMap[$engineType])) {
+            $available = implode(', ', array_keys($this->_engineMap));
+            Mage::throwException(
+                sprintf(
+                    'Engine "%s" not available. Available engines: %s',
+                    $engineType,
+                    $available
+                )
+            );
         }
         
-        $adapterModelName = $this->_engineAdapterMap[$engineType];
-        $adapter = new $adapterModelName((int)$storeId);
-        if (!($adapter instanceof MM_Search_Model_Api_AdapterInterface)) {
-            Mage::throwException(sprintf('Adapter %s does not implement MM_Search_Model_Api_AdapterInterface', $adapterModelName));
+        $engineClass = $this->_engineMap[$engineType];
+        $engine = new $engineClass($storeId);
+        
+        if (!($engine instanceof MM_Search_Model_Search_EngineInterface)) {
+            Mage::throwException(
+                sprintf('Engine %s must implement MM_Search_Model_Search_EngineInterface', $engineClass)
+            );
         }
         
-        return $adapter->create();
+        return $engine;
     }
 
     /**
-     * Get available search engines as key-value pairs
+     * Get available search engines for configuration dropdown
      *
-     * @return array Associative array of engine types and labels
+     * @return array Associative array ['type' => 'Label']
      */
-    public function getAvailableEngines(): array
+    public function getAvailableEngines()
     {
-        $engines = [];
+        $engines = array();
         
-        foreach ($this->_engineAdapterMap as $type => $adapterModelName) {
-            $adapter = new $adapterModelName();
-            
-            if ($adapter instanceof MM_Search_Model_Api_AdapterInterface) {
-                $engines[$type] = $adapter::getLabel();
-            }
+        foreach ($this->_engineMap as $type => $engineClass) {
+            $engines[$type] = call_user_func(array($engineClass, 'getLabel'));
         }
         
         return $engines;
@@ -94,48 +111,70 @@ class MM_Search_Model_Api_Factory
      * @param string $engineType Engine type to check
      * @return bool True if supported, false otherwise
      */
-    public function isEngineTypeSupported(string $engineType): bool
+    public function isEngineTypeSupported($engineType)
     {
-        return isset($this->_engineAdapterMap[$engineType]);
+        return isset($this->_engineMap[$engineType]);
     }
 
     /**
      * Get list of supported engine types
      *
-     * @return array<string> List of supported engine types
+     * @return array List of supported engine types
      */
-    public function getSupportedEngineTypes(): array
+    public function getSupportedEngineTypes()
     {
-        return array_keys($this->_engineAdapterMap);
+        return array_keys($this->_engineMap);
     }
 
     /**
-     * Get engine adapter class name for the specified engine type
-     * @return array<string, class-string<MM_Search_Model_Api_AdapterInterface>> Map of engine types to adapter class names
-     */
-    public function getEngineClassName(string $engineType = null): string
-    {
-        return $this->_engineAdapterMap[$engineType];
-    }
-
-    /**
-     * Register a new search engine adapter
+     * Get engine class name for the specified engine type
      *
-     * @param class-string<MM_Search_Model_Api_AdapterInterface $adapterClass Adapter class name (must implement MM_Search_Model_Api_AdapterInterface)
-     * @return $this
+     * @param string $engineType Engine type
+     * @return string|null Engine class name or null if not found
      */
-    public function registerEngineAdapter($adapterClass): self
-    { 
-        if (!is_subclass_of($adapterClass, MM_Search_Model_Api_AdapterInterface::class)) {
-            Mage::throwException(sprintf('Adapter %s does not implement MM_Search_Model_Api_AdapterInterface', $adapterClass));
+    public function getEngineClassName($engineType = null)
+    {
+        return isset($this->_engineMap[$engineType]) ? $this->_engineMap[$engineType] : null;
+    }
+
+    /**
+     * Register a new search engine
+     *
+     * @param string $engineClass Engine class name (must implement MM_Search_Model_Search_EngineInterface)
+     * @return $this
+     * @throws Mage_Core_Exception
+     */
+    public function registerEngine($engineClass)
+    {
+        if (!class_exists($engineClass)) {
+            Mage::throwException(sprintf('Engine class %s not found', $engineClass));
         }
-        if (isset($this->_engineAdapterMap[$adapterClass::getType()])) {
-            Mage::throwException(sprintf('Adapter %s is already registered for type %s', $adapterClass, $adapterClass::getType()));
+        
+        if (!in_array('MM_Search_Model_Search_EngineInterface', class_implements($engineClass))) {
+            Mage::throwException(
+                sprintf('Engine %s must implement MM_Search_Model_Search_EngineInterface', $engineClass)
+            );
         }
-        if (!class_exists($adapterClass)) {
-            Mage::throwException(sprintf('Adapter class %s does not exist', $adapterClass));
+        
+        // Get type from static method
+        $type = call_user_func(array($engineClass, 'getType'));
+        
+        if (isset($this->_engineMap[$type])) {
+            Mage::log(sprintf('Engine type "%s" already registered, overwriting with %s', $type, $engineClass));
         }
-        $this->_engineAdapterMap[$adapterClass::getType()] = $adapterClass;
+        
+        $this->_engineMap[$type] = $engineClass;
         return $this;
+    }
+    
+    /**
+     * Check if engine is available
+     *
+     * @param string $engineType Engine type
+     * @return bool
+     */
+    public function isEngineAvailable($engineType)
+    {
+        return isset($this->_engineMap[$engineType]);
     }
 }
