@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+
 
 class MM_Search_Model_System_Config_Source_Protocol
 {

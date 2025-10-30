@@ -1,7 +1,14 @@
 <?php
-
-declare(strict_types=1);
-
+/**
+ * Search Engine for Fulltext Indexing
+ *
+ * Adapter between Magento's catalogsearch indexing and MM_Search engine.
+ * Delegates all operations to MM_Search_Model_Api which uses the native engine.
+ *
+ * @category   MM
+ * @package    MM_Search
+ * @author     Tony
+ */
 class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_Resource_Fulltext_Engine
 {
     /**
@@ -10,10 +17,13 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
     protected $_apiModel;
 
     /**
-     * @var MM_Search_Helper_Data 
+     * @var MM_Search_Helper_Data
      */
     protected $_helper;
 
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         parent::__construct();
@@ -30,17 +40,17 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      * @param string $entity 'product'|'cms'
      * @return $this
      */
-    public function saveEntityIndex($entityId, $storeId, $index, $entity = 'product'): static
+    public function saveEntityIndex($entityId, $storeId, $index, $entity = 'product')
     {
-        if(!Mage::app()->getStore($storeId)->getIsActive()) {
+        if (!Mage::app()->getStore($storeId)->getIsActive()) {
             return $this;
         }
 
-        if(!$this->_helper->isEnabled($storeId)) {
+        if (!$this->_helper->isEnabled($storeId)) {
             return parent::saveEntityIndex($entityId, $storeId, $index, $entity);
         }
             
-        $this->saveEntityIndexes($storeId, [$entityId => $index], $entity);
+        $this->saveEntityIndexes($storeId, array($entityId => $index), $entity);
         return $this;
     }
 
@@ -52,26 +62,29 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      * @param string $entityType 'product'|'cms'
      * @return $this
      */
-    public function saveEntityIndexes($storeId, $entityIndexes, $entityType = 'product'): static
+    public function saveEntityIndexes($storeId, $entityIndexes, $entityType = 'product')
     {
-        if(!Mage::app()->getStore($storeId)->getIsActive()) {
+        if (!Mage::app()->getStore($storeId)->getIsActive()) {
             return $this;
         }
 
-        if(!$this->_helper->isEnabled($storeId)) {
+        if (!$this->_helper->isEnabled($storeId)) {
             return parent::saveEntityIndexes($storeId, $entityIndexes, $entityType);
         }
 
         try {
-            // it's full reindex, so drop index if no entities
-            $dropIndex = false;
-            if (empty($entityIndexes)) {
-                $dropIndex = true;
-            }
-            $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: $dropIndex, identifiers: array_keys($entityIndexes));
+            // Full reindex if no entities (drop and recreate)
+            $dropIndex = empty($entityIndexes);
+            
+            // Reindex via API model
+            $this->_apiModel
+                ->setStoreId($storeId)
+                ->reindex($dropIndex, array_keys($entityIndexes));
+                
         } catch (Exception $e) {
             Mage::logException($e);
         }
+        
         return $this;
     }
 
@@ -83,83 +96,34 @@ class MM_Search_Model_Resource_Fulltext_Engine extends Mage_CatalogSearch_Model_
      * @param string $entity 'product'|'cms'
      * @return $this
      */
-    public function cleanIndex($storeId = null, $entityId = null, $entity = 'product'): Mage_CatalogSearch_Model_Resource_Fulltext_Engine|MM_Search_Model_Resource_Fulltext_Engine
+    public function cleanIndex($storeId = null, $entityId = null, $entity = 'product')
     {
-        if(!Mage::app()->getStore($storeId)->getIsActive()) {
+        if (!Mage::app()->getStore($storeId)->getIsActive()) {
             return $this;
         }
 
-        if(!$this->_helper->isEnabled($storeId)) {
+        if (!$this->_helper->isEnabled($storeId)) {
             return parent::cleanIndex($storeId, $entityId, $entity);
         }
         
         if ($entityId === null) {
             return $this;
         }
+        
         try {
-            /* if (!is_null($storeId)) {
-                $this->_apiModel->setStoreId($storeId);
-            }
-            if (!is_null($entityId)) {
-                $this->_apiModel->deleteDocument($entityId);
-            } */
-            /* if (!is_null($storeId)) {
-                $this->_apiModel->setStoreId($storeId)->reindex(dropIndex: false, identifiers: $entityId);
-            } 
-            */
+            // Handle both single ID and array of IDs
+            $entityIds = is_array($entityId) ? $entityId : array($entityId);
             
-            foreach ($entityId as $identifier) {
-                $this->_apiModel->setStoreId($storeId)->deleteDocument($identifier);
+            foreach ($entityIds as $identifier) {
+                $this->_apiModel
+                    ->setStoreId($storeId)
+                    ->deleteDocument($identifier);
             }
             
         } catch (Exception $e) {
             Mage::logException($e);
         }
+        
         return $this;
     }
-
-    /**
-     * Prepare results for query
-     *
-     * @param Mage_CatalogSearch_Model_Query $query
-     * @return array
-     */
-    /* public function getIdsByQuery($query)
-    {
-        $storeId = Mage::app()->getStore()->getId();
-        if (!$this->_helper->isEnabled($storeId)) {
-            return parent::getIdsByQuery($query);
-        }
-
-        try {
-            $client = $this->_apiModel->setStoreId($storeId)->getSearchClient();
-            $collectionName = $this->_helper->getCollectionName($storeId);
-            $queryText = $query->getQueryText();
-
-            $searchParameters = [
-                'q'                   => $queryText,
-                'query_by'            => 'name,sku,description,short_description',
-                'sort_by'             => '_text_match:desc',
-                'per_page'            => 1000,
-                'highlight_full_fields' => 'name,sku,description,short_description',
-                'filter_by'           => 'status:1 && visibility:[2,4]'
-            ];
-
-            $searchResults = $client->collections[$collectionName]->documents->search($searchParameters);
-
-            $ids = [];
-            foreach ($searchResults['hits'] as $hit) {
-                $ids[$hit['document']['id']] = [
-                    'relevance' => $hit['text_match']
-                ];
-            }
-
-            return $ids;
-        } catch (Exception $e) {
-            Mage::logException($e);
-            // Fallback to default engine
-            return parent::getIdsByQuery($query);
-        }
-    } */
-
 }

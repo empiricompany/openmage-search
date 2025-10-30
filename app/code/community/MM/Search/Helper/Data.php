@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+
 
 class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
 {
@@ -20,8 +20,9 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Check if module is enabled
      *
      * @param int|null $storeId Store ID
+     * @return bool
      */
-    public function isEnabled($storeId = null): bool
+    public function isEnabled($storeId = null)
     {
         return Mage::getStoreConfigFlag(self::XML_PATH_ENABLED, $storeId);
     }
@@ -30,19 +31,22 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get search engine type from configuration
      *
      * @param int|null $storeId Store ID
+     * @return string
      */
-    public function getEngineType($storeId = null): string
+    public function getEngineType($storeId = null)
     {
         return Mage::getStoreConfig(self::XML_PATH_SEARCH_ENGINE_TYPE, $storeId);
     }
 
     /**
      * Get instant search adapter JS library name
+     *
+     * @param int|null $storeId
      * @return string
      */
-    public function getInstantSearchAdapterJs($storeId = null): string
+    public function getInstantSearchAdapterJs($storeId = null)
     {
-        if(! $this->isEnabled($storeId)) {
+        if (!$this->isEnabled($storeId)) {
             return '';
         }
         $engineType = $this->getEngineType($storeId);
@@ -50,17 +54,17 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
             return '';
         }
         $factory = Mage::getSingleton('mm_search/api_factory');
-        $adapterClass = $factory->getEngineClassName($engineType);
-        return sprintf('js/mm_search/%s', $adapterClass::getInstantSearchAdapterJs());
+        $engineClass = $factory->getEngineClassName($engineType);
+        return sprintf('js/mm_search/%s', call_user_func(array($engineClass, 'getInstantSearchAdapterJs')));
     }
 
     /**
      * Get engine config template path
      *
-     * @param null $storeId
+     * @param int|null $storeId
      * @return string
      */
-    public function getEngineConfigTemplate($storeId = null): string
+    public function getEngineConfigTemplate($storeId = null)
     {
         if (!$this->isEnabled($storeId)) {
             return '';
@@ -78,16 +82,20 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get search only API key
      *
      * @param int|null $storeId Store ID
+     * @return string
      */
-    public function getSearchOnlyApiKey($storeId = null): string
+    public function getSearchOnlyApiKey($storeId = null)
     {
         return Mage::getStoreConfig(self::XML_PATH_SEARCH_ONLY_API_KEY, $storeId);
     }
 
     /**
      * Check if proxy mode is enabled
+     *
+     * @param int|null $storeId
+     * @return bool
      */
-    public function isProxyEnabled($storeId = null): bool
+    public function isProxyEnabled($storeId = null)
     {
         return Mage::getStoreConfigFlag(self::XML_PATH_PROXY, $storeId);
     }
@@ -96,8 +104,9 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get admin API key
      *
      * @param int|null $storeId Store ID
+     * @return string
      */
-    public function getAdminApiKey($storeId = null): string
+    public function getAdminApiKey($storeId = null)
     {
         return Mage::getStoreConfig(self::XML_PATH_ADMIN_API_KEY, $storeId);
     }
@@ -106,8 +115,9 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get host
      *
      * @param int|null $storeId Store ID
+     * @return string
      */
-    public function getHost($storeId = null): string
+    public function getHost($storeId = null)
     {
         return Mage::getStoreConfig(self::XML_PATH_HOST, $storeId);
     }
@@ -116,8 +126,9 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get port
      *
      * @param int|null $storeId Store ID
+     * @return string
      */
-    public function getPort($storeId = null): string
+    public function getPort($storeId = null)
     {
         return Mage::getStoreConfig(self::XML_PATH_PORT, $storeId);
     }
@@ -126,8 +137,9 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get protocol
      *
      * @param int|null $storeId Store ID
+     * @return string
      */
-    public function getProtocol($storeId = null): string
+    public function getProtocol($storeId = null)
     {
         return Mage::getStoreConfig(self::XML_PATH_PROTOCOL, $storeId);
     }
@@ -136,17 +148,20 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * Get collection name
      *
      * @param int|null $storeId Store ID
+     * @return string
      */
-    public function getCollectionName($storeId = null): string
+    public function getCollectionName($storeId = null)
     {
         return Mage::getStoreConfig(self::XML_PATH_COLLECTION_NAME, $storeId);
     }
 
     /**
      * Get cache lifetime for instant search
-     * 
+     *
+     * @param int|null $storeId
+     * @return int
      */
-    public function getCacheLifetime($storeId = null): int
+    public function getCacheLifetime($storeId = null)
     {
         return (int) Mage::getStoreConfig(self::XML_PATH_INSTANTSEARCH_CACHE, $storeId);
     }
@@ -157,7 +172,7 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
      * @param string $file
      * @return string
      */
-    public function getSkinUrl(string $file): string
+    public function getSkinUrl($file)
     {
         return Mage::getDesign()->getSkinUrl($file);
     }

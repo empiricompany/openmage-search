@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+
 
 class MM_Search_Model_Resource_Fulltext extends Mage_CatalogSearch_Model_Resource_Fulltext
 {
