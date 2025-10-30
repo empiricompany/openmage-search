@@ -1,47 +1,19 @@
 <?php
 /**
  * Typesense Search Engine Implementation
- * 
+ *
  * Direct integration with typesense/typesense-php SDK.
- * Implements MM_Search_Model_Search_EngineInterface for compatibility
- * with multi-engine architecture.
- * 
+ * Extends Abstract to inherit automatic batch processing logic.
+ *
  * @category   MM
  * @package    MM_Search
  * @author     Tony
  */
-class MM_Search_Model_Search_Engine_Typesense implements MM_Search_Model_Search_EngineInterface
+class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Engine_Abstract
 {
     /**
-     * @var Typesense\Client
-     */
-    protected $_client;
-    
-    /**
-     * @var MM_Search_Helper_Data
-     */
-    protected $_helper;
-    
-    /**
-     * @var int|null
-     */
-    protected $_storeId;
-    
-    /**
-     * Initialize Typesense client
-     * 
-     * @param int|null $storeId Store ID for store-specific configuration
-     */
-    public function __construct($storeId = null)
-    {
-        $this->_storeId = $storeId;
-        $this->_helper = Mage::helper('mm_search');
-        $this->_initClient();
-    }
-    
-    /**
      * Initialize Typesense client with store configuration
-     * 
+     *
      * @return void
      */
     protected function _initClient()
@@ -60,16 +32,6 @@ class MM_Search_Model_Search_Engine_Typesense implements MM_Search_Model_Search_
             ]],
             'connection_timeout_seconds' => 5
         ]);
-    }
-    
-    /**
-     * Get native Typesense client
-     * 
-     * @return Typesense\Client
-     */
-    public function getClient()
-    {
-        return $this->_client;
     }
     
     /**
@@ -99,7 +61,7 @@ class MM_Search_Model_Search_Engine_Typesense implements MM_Search_Model_Search_
         foreach ($fields as $name => $props) {
             $field = [
                 'name' => $name,
-                'type' => $this->_mapToTypesenseType($props)
+                'type' => $this->_mapFieldType($props)
             ];
             
             // Add faceting if field is filterable
@@ -108,11 +70,7 @@ class MM_Search_Model_Search_Engine_Typesense implements MM_Search_Model_Search_
             }
             
             // Add optional flag
-            if (isset($props['optional'])) {
-                $field['optional'] = (bool)$props['optional'];
-            } else {
-                $field['optional'] = true; // Default to optional
-            }
+            $field['optional'] = isset($props['optional']) ? (bool)$props['optional'] : true;
             
             $typesenseFields[] = $field;
         }
@@ -128,82 +86,16 @@ class MM_Search_Model_Search_Engine_Typesense implements MM_Search_Model_Search_
     }
     
     /**
-     * Map standard field type to Typesense type
-     * 
-     * @param array $props Field properties
-     * @return string Typesense field type (e.g., 'string', 'int32', 'float', 'string[]')
-     */
-    protected function _mapToTypesenseType(array $props)
-    {
-        // Define type mapping
-        $typeMap = [
-            'identifier' => 'string',
-            'text' => 'string',
-            'integer' => 'int32',
-            'float' => 'float'
-        ];
-        
-        $type = isset($props['type']) ? $props['type'] : 'text';
-        $typesenseType = isset($typeMap[$type]) ? $typeMap[$type] : 'string';
-        
-        // Handle array types
-        $multiple = isset($props['multiple']) && $props['multiple'];
-        if ($multiple) {
-            $typesenseType .= '[]';
-        }
-        
-        return $typesenseType;
-    }
-    
-    /**
-     * Bulk index documents into Typesense
-     * 
-     * Uses Typesense's import API for efficient batch operations.
-     * Processes documents in configurable batches to manage memory usage.
-     * 
+     * Import a batch of documents into Typesense
+     *
+     * Called automatically by bulkIndex() from Abstract class.
+     * Only handles the actual import - batching is automatic.
+     *
      * @param string $collectionName Collection name
-     * @param iterable $documents Generator or array of documents
-     * @param int $batchSize Number of documents per batch (default: 100)
-     * @return array Stats: ['count' => int, 'errors' => array]
-     */
-    public function bulkIndex($collectionName, $documents, $batchSize = 100)
-    {
-        $batch = [];
-        $count = 0;
-        $errors = [];
-        
-        foreach ($documents as $document) {
-            $batch[] = $document;
-            $count++;
-            
-            // Process batch when it reaches the specified size
-            if (count($batch) >= $batchSize) {
-                $batchErrors = $this->_importBatch($collectionName, $batch);
-                $errors = array_merge($errors, $batchErrors);
-                $batch = [];
-            }
-        }
-        
-        // Process remaining documents
-        if (!empty($batch)) {
-            $batchErrors = $this->_importBatch($collectionName, $batch);
-            $errors = array_merge($errors, $batchErrors);
-        }
-        
-        return [
-            'count' => $count,
-            'errors' => $errors
-        ];
-    }
-    
-    /**
-     * Import a batch of documents
-     * 
-     * @param string $collectionName Collection name
-     * @param array $batch Array of documents
+     * @param array $batch Array of documents to import
      * @return array Array of error messages (empty if all successful)
      */
-    protected function _importBatch($collectionName, array $batch)
+    protected function _importBatch($collectionName, $batch)
     {
         $errors = [];
         

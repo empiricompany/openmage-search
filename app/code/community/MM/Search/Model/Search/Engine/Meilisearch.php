@@ -1,52 +1,23 @@
 <?php
 /**
  * Meilisearch Search Engine Implementation
- * 
+ *
  * Integration with meilisearch/meilisearch-php SDK.
- * This is a skeleton implementation that will be completed when
- * meilisearch/meilisearch-php is installed via composer.
- * 
+ * Extends Abstract to inherit automatic batch processing logic.
+ *
  * To enable Meilisearch support:
  * 1. Run: composer require meilisearch/meilisearch-php
- * 2. Complete the method implementations below
- * 3. Configure in Admin > MM Search > Engine Type
- * 
+ * 2. Configure in Admin > MM Search > Engine Type > Select "Meilisearch"
+ *
  * @category   MM
  * @package    MM_Search
  * @author     Tony
  */
-class MM_Search_Model_Search_Engine_Meilisearch implements MM_Search_Model_Search_EngineInterface
+class MM_Search_Model_Search_Engine_Meilisearch extends MM_Search_Model_Search_Engine_Abstract
 {
     /**
-     * @var Meilisearch\Client
-     */
-    protected $_client;
-    
-    /**
-     * @var MM_Search_Helper_Data
-     */
-    protected $_helper;
-    
-    /**
-     * @var int|null
-     */
-    protected $_storeId;
-    
-    /**
-     * Initialize Meilisearch client
-     * 
-     * @param int|null $storeId Store ID for store-specific configuration
-     */
-    public function __construct($storeId = null)
-    {
-        $this->_storeId = $storeId;
-        $this->_helper = Mage::helper('mm_search');
-        $this->_initClient();
-    }
-    
-    /**
      * Initialize Meilisearch client with store configuration
-     * 
+     *
      * @return void
      */
     protected function _initClient()
@@ -60,16 +31,6 @@ class MM_Search_Model_Search_Engine_Meilisearch implements MM_Search_Model_Searc
         
         // Initialize Meilisearch client
         $this->_client = new \Meilisearch\Client($url, $apiKey);
-    }
-    
-    /**
-     * Get native Meilisearch client
-     * 
-     * @return Meilisearch\Client
-     */
-    public function getClient()
-    {
-        return $this->_client;
     }
     
     /**
@@ -136,56 +97,19 @@ class MM_Search_Model_Search_Engine_Meilisearch implements MM_Search_Model_Searc
     }
     
     /**
-     * Bulk index documents into Meilisearch
-     * 
-     * Uses Meilisearch's addDocuments API for batch operations.
-     * 
+     * Import a batch of documents into Meilisearch
+     *
+     * Called automatically by bulkIndex() from Abstract class.
+     * Only handles the actual import - batching is automatic.
+     *
      * @param string $collectionName Index name
-     * @param iterable $documents Generator or array of documents
-     * @param int $batchSize Number of documents per batch (default: 100)
-     * @return array Stats: ['count' => int, 'errors' => array]
+     * @param array $batch Array of documents to import
+     * @return array Array of error messages (empty if all successful)
      */
-    public function bulkIndex($collectionName, $documents, $batchSize = 100)
+    protected function _importBatch($collectionName, $batch)
     {
+        $errors = [];
         $index = $this->_client->index($collectionName);
-        $batch = [];
-        $count = 0;
-        $errors = [];
-        
-        foreach ($documents as $document) {
-            $batch[] = $document;
-            $count++;
-            
-            // Process batch when it reaches the specified size
-            if (count($batch) >= $batchSize) {
-                $batchErrors = $this->_addDocuments($index, $batch);
-                $errors = array_merge($errors, $batchErrors);
-                $batch = [];
-            }
-        }
-        
-        // Process remaining documents
-        if (!empty($batch)) {
-            $batchErrors = $this->_addDocuments($index, $batch);
-            $errors = array_merge($errors, $batchErrors);
-        }
-        
-        return [
-            'count' => $count,
-            'errors' => $errors
-        ];
-    }
-    
-    /**
-     * Add batch of documents to Meilisearch
-     * 
-     * @param object $index Meilisearch index object
-     * @param array $batch Array of documents
-     * @return array Array of error messages
-     */
-    protected function _addDocuments($index, array $batch)
-    {
-        $errors = [];
         
         try {
             $task = $index->addDocuments($batch);
