@@ -13,6 +13,7 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_PROXY = 'mm_search/connection/proxy';
     const XML_PATH_COLLECTION_NAME = 'mm_search/connection/collection_name';
     const XML_PATH_ENABLED = 'mm_search/general/enabled';
+    const XML_PATH_DEBUG = 'mm_search/general/debug';
 
     const XML_PATH_INSTANTSEARCH_CACHE = 'mm_search/instantsearch/cache_lifetime';
 
@@ -164,6 +165,33 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function getCacheLifetime($storeId = null)
     {
         return (int) Mage::getStoreConfig(self::XML_PATH_INSTANTSEARCH_CACHE, $storeId);
+    }
+
+    /**
+     * Check if debug mode is enabled (global configuration)
+     *
+     * @return bool
+     */
+    public function isDebugEnabled()
+    {
+        return Mage::getStoreConfigFlag(self::XML_PATH_DEBUG);
+    }
+
+    /**
+     * Add debug message to admin session
+     *
+     * Only displays message if debug mode is enabled in global configuration.
+     * Use this instead of directly calling addNotice to avoid flooding
+     * admin session with messages in production.
+     *
+     * @param string $message Debug message to display
+     * @return void
+     */
+    public function debug($message)
+    {
+        if ($this->isDebugEnabled()) {
+            Mage::getSingleton('adminhtml/session')->addNotice($this->__($message));
+        }
     }
 
     /**

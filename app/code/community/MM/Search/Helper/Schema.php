@@ -25,7 +25,12 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
         $attributeCollection = $this->getSearchableAttributes();
 
         foreach ($attributeCollection as $attribute) {
-            $fields[$attribute->getAttributeCode()] = $this->createSchemaField($attribute);
+            $code = $attribute->getAttributeCode();
+            
+            // Don't override base fields - they have custom properties like 'infix'
+            if (!isset($fields[$code])) {
+                $fields[$code] = $this->createSchemaField($attribute);
+            }
         }
 
         return $fields;
@@ -159,6 +164,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => true,
                 'sortable' => false,
                 'searchable' => true,
+                'infix' => true,
             ),
             'price' => array(
                 'type' => 'float',

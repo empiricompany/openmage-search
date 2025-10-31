@@ -2,8 +2,8 @@
 /**
  * Factory for creating search engine instances
  *
- * Auto-discovers available engines based on installed classes.
- * Supports multiple engines: Typesense (always), Meilisearch (if SDK installed), etc.
+ * Auto-discovers available engines based on installed Composer packages.
+ * Supports multiple engines: Typesense, Meilisearch, etc.
  *
  * @category   MM
  * @package    MM_Search
@@ -33,24 +33,32 @@ class MM_Search_Model_Api_Factory
     /**
      * Auto-discover available engines
      *
-     * Typesense is always available (required dependency).
-     * Other engines are registered if their SDK classes exist.
+     * Uses Composer's InstalledVersions to check which SDK packages are installed.
+     * Engines are registered only if their corresponding SDK is present.
      *
      * @return void
      */
     protected function _discoverEngines()
     {
-        // Typesense: always available (required dependency)
-        $this->registerEngine('MM_Search_Model_Search_Engine_Typesense');
+        // Check if Composer\InstalledVersions is available
+        if (!class_exists('Composer\InstalledVersions')) {
+            Mage::log('Composer\InstalledVersions not available, cannot auto-discover search engines', Zend_Log::WARN);
+            return;
+        }
         
-        // Meilisearch: only if SDK is installed
-        if (class_exists('Meilisearch\Client')) {
+        // Typesense: check if SDK is installed
+        if (\Composer\InstalledVersions::isInstalled('typesense/typesense-php')) {
+            $this->registerEngine('MM_Search_Model_Search_Engine_Typesense');
+        }
+        
+        // Meilisearch: check if SDK is installed
+        if (\Composer\InstalledVersions::isInstalled('meilisearch/meilisearch-php')) {
             $this->registerEngine('MM_Search_Model_Search_Engine_Meilisearch');
         }
         
         // Future engines can be added here
         // Example: Algolia
-        // if (class_exists('Algolia\AlgoliaSearch\SearchClient')) {
+        // if (\Composer\InstalledVersions::isInstalled('algolia/algoliasearch-client-php')) {
         //     $this->registerEngine('MM_Search_Model_Search_Engine_Algolia');
         // }
     }

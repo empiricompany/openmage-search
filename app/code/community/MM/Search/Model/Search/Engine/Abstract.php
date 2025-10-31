@@ -97,6 +97,15 @@ abstract class MM_Search_Model_Search_Engine_Abstract implements MM_Search_Model
             $errors = array_merge($errors, $batchErrors);
         }
         
+        $this->_helper->debug(
+            sprintf(
+                'Completed bulk indexing into collection "%s". Total documents: %d, Batch size: %d.',
+                $collectionName,
+                $count,
+                $batchSize
+            )
+        );
+        
         return array(
             'count' => $count,
             'errors' => $errors
