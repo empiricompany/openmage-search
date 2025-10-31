@@ -3,8 +3,10 @@
 Advanced search module for OpenMage with native multi-engine support (Typesense, Meilisearch) and instantsearch.js for frontend.
 
 ## Overview
+![instantsearch](https://github.com/user-attachments/assets/f6139686-cf12-4eca-992a-e393d63e0805)
+![instantsearch_mobile](https://github.com/user-attachments/assets/f4593625-17b7-42bb-97c4-5dd7e3c07200)
+![instantsearch_mobile_sidebar](https://github.com/user-attachments/assets/ccac622c-cfe7-45c2-af62-08f40f45ab33)
 
-![instantsearch](https://github.com/user-attachments/assets/919c8179-c37c-49b1-bcfb-ed2979fdf93c)
 
 MM Search replaces the default OpenMage search with modern search engines, providing instant search with rich features and zero performance impact.
 
