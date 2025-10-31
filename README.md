@@ -342,13 +342,13 @@ Map these to your engine's schema format in `createOrUpdateSchema()`.
 ### Benefits of Extending Abstract
 
 By extending `MM_Search_Model_Search_Engine_Abstract`:
-- ✅ **Automatic batching**: `bulkIndex()` handled for you
+- ✅ **Automatic batching**: `bulkIndex()` handled automatically
 - ✅ **Consistent behavior**: Same batching logic across all engines
-- ✅ **Less code**: Implement only `_importBatch()` (~30 lines vs ~150)
-- ✅ **Easy override**: Can customize if needed
+- ✅ **Minimal code**: Implement only `_importBatch()` method
+- ✅ **Easy override**: Can customize batching if needed
 - ✅ **Helper access**: `$this->_helper` for configuration and debug
 
-### Example: Minimal Engine (~150 lines)
+### Example: New Engine Implementation
 
 ```php
 class MM_Search_Model_Search_Engine_Minimal extends Abstract
