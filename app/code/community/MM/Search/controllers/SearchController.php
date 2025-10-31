@@ -19,11 +19,19 @@ class MM_Search_SearchController extends Mage_Core_Controller_Front_Action
             $apiKey = $helper->getSearchOnlyApiKey();
             $port = $helper->getPort();
             $protocol = $helper->getProtocol();
-            $url = match($helper->getEngineType()) {
-                'typesense' => "{$protocol}://{$host}:{$port}/multi_search",
-                'meilisearch' => "{$protocol}://{$host}:{$port}/multi-search",
-                default => throw new Exception('Unsupported search engine type')
-            };
+            
+            // Determine URL based on engine type
+            $engineType = $helper->getEngineType();
+            switch ($engineType) {
+                case 'typesense':
+                    $url = "{$protocol}://{$host}:{$port}/multi_search";
+                    break;
+                case 'meilisearch':
+                    $url = "{$protocol}://{$host}:{$port}/multi-search";
+                    break;
+                default:
+                    throw new Exception('Unsupported search engine type: ' . $engineType);
+            }
             
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
