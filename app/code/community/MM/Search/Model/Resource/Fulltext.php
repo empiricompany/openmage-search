@@ -26,9 +26,9 @@ class MM_Search_Model_Resource_Fulltext extends Mage_CatalogSearch_Model_Resourc
      *
      * @param int $storeId Store View Id
      * @param int|array $productIds Product Entity Id
-     * @return $this
+     * @return Mage_CatalogSearch_Model_Resource_Fulltext|MM_Search_Model_Resource_Fulltext
      */
-    protected function _rebuildStoreIndex($storeId, $productIds = null): Mage_CatalogSearch_Model_Resource_Fulltext|MM_Search_Model_Resource_Fulltext
+    protected function _rebuildStoreIndex($storeId, $productIds = null)
     {
          if(!Mage::app()->getStore($storeId)->getIsActive()) {
             return $this;

@@ -70,7 +70,13 @@ Product SKUs support **partial matching** on Typesense:
 
 - OpenMage LTS 19.x or higher
 - PHP 7.4 or higher
+- **Composer 2.0+** (required for dependency management)
 - Typesense server (self-hosted or cloud)
+
+> **Note**: If you have Composer 1.x, upgrade to Composer 2:
+> ```bash
+> composer self-update --2
+> ```
 
 ### Self-Host Typesense with Docker
 
@@ -109,17 +115,73 @@ volumes:
 
 ## Installation
 
-### Via Composer
+### Method 1: OpenMage with Composer (Recommended)
+
+If your OpenMage is already managed with Composer:
+
 ```bash
 composer require empiricompany/openmage-search
 ```
 
-This installs the module with Typesense support by default.
+✅ This installs the module + Typesense dependencies automatically.
+
+---
+
+### Method 2: OpenMage WITHOUT Composer
+
+If you installed OpenMage manually (not via Composer), follow these steps:
+
+#### Step 1: Add Composer Autoloader Patch
+
+Edit `app/Mage.php` and add this code after `Varien_Autoload::register();` (around line 38):
+
+```php
+Varien_Autoload::register();
+
+/** COMPOSER AUTOLOADER PATCH **/
+$autoloaderPath = getenv('COMPOSER_VENDOR_PATH');
+if (!$autoloaderPath) {
+    $autoloaderPath = dirname(BP) . DS . 'vendor';
+    if (!is_dir($autoloaderPath)) {
+        $autoloaderPath = BP . DS . 'vendor';
+    }
+}
+if (file_exists($autoloaderPath . DS . 'autoload.php')) {
+    require_once $autoloaderPath . DS . 'autoload.php';
+}
+/** END COMPOSER AUTOLOADER PATCH **/
+```
+
+#### Step 2: Install Dependencies
+
+```bash
+cd /path/to/openmage/root
+composer require "typesense/typesense-php:^5.1"
+```
+
+This creates `composer.json` and `vendor/` directory with Typesense SDK.
+
+#### Step 3: Install Module
+
+**Option A: Via Modgit**
+```bash
+modgit add -b native mm-search https://github.com/empiricompany/openmage-search
+```
+
+**Option B: Manual Download**
+1. Download: https://github.com/empiricompany/openmage-search/archive/refs/heads/native.zip
+2. Extract to your OpenMage root
+3. Clear cache: `rm -rf var/cache/*`
+
+---
 
 ### Add Meilisearch Support (Optional)
+
 ```bash
-composer require meilisearch/meilisearch-php
+composer require "meilisearch/meilisearch-php:^1.0"
 ```
+
+The module will automatically detect Meilisearch and make it available in configuration.
 
 ## Configuration
 
