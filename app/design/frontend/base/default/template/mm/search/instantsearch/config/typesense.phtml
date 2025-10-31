@@ -10,9 +10,11 @@
             cacheSearchResultsForSeconds: window.instantSearchConfig.cacheSearchResultsForSeconds,
         },
         additionalSearchParameters: {
-            query_by: 'name,short_description,sku',
-            highlight_full_fields: 'name,short_description,sku',
-            per_page: 12,
+            query_by: 'sku,name,short_description',
+            query_by_weights: '4,2,1',
+            infix: 'fallback,off,off',
+            highlight_full_fields: 'sku,name,short_description',
+            per_page: 24,
             facet_by: ['category_names', ...window.instantSearchConfig.facetBy].join(','),
         }
     });
