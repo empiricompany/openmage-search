@@ -343,3 +343,61 @@ Map these to your engine's schema format in `createOrUpdateSchema()`.
 
 By extending `MM_Search_Model_Search_Engine_Abstract`:
 - ✅ **Automatic batching**: `bulkIndex()` handled for you
+- ✅ **Consistent behavior**: Same batching logic across all engines
+- ✅ **Less code**: Implement only `_importBatch()` (~30 lines vs ~150)
+- ✅ **Easy override**: Can customize if needed
+- ✅ **Helper access**: `$this->_helper` for configuration and debug
+
+### Example: Minimal Engine (~150 lines)
+
+```php
+class MM_Search_Model_Search_Engine_Minimal extends Abstract
+{
+    protected function _initClient() { /* SDK setup */ }
+    public function createOrUpdateSchema($collection, $fields) { /* Schema */ }
+    protected function _importBatch($collection, $batch) { /* Import only! */ }
+    public function deleteDocument($collection, $id) { /* Delete */ }
+    public function dropCollection($collection) { /* Drop */ }
+    public function collectionExists($collection) { return true; }
+    public static function getType() { return 'minimal'; }
+    public static function getLabel() { return 'Minimal'; }
+    public static function getInstantSearchAdapterJs() { return 'minimal-adapter.js'; }
+}
+```
+
+That's it! The `bulkIndex()` method with automatic batching is inherited.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Engine Not Available in Dropdown**
+   - Install SDK: `composer require yourengine/sdk`
+   - Clear cache: `rm -rf var/cache/*`
+   - Check Factory auto-discovery
+
+2. **SKU Infix Not Working**
+   - Enable debug mode
+   - Reindex with drop: Check schema in debug output
+   - Verify `"infix":true` in SKU field
+
+3. **Debug Messages Not Showing**
+   - System > Configuration > MM Search > Debug Mode: Yes
+   - Clear cache
+   - Check admin session messages
+
+4. **Connection Failed**
+   - Verify server is running: `telnet <host> <port>`
+   - Check API key permissions
+   - Review protocol (http vs https)
+
+### Performance Tips
+
+- Use batch size 100-500 for optimal performance
+- Enable proxy only if needed (self-hosted without SSL)
+- Monitor search engine resource usage
+- Use CDN for InstantSearch.js libraries
+
+## License
+
+This module is licensed under the MIT License.
