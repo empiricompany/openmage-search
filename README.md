@@ -154,10 +154,19 @@ if (file_exists($autoloaderPath . DS . 'autoload.php')) {
 
 #### Step 2: Install Dependencies
 
+**For PHP 7.4:**
+```bash
+cd /path/to/openmage/root
+composer require "typesense/typesense-php:^4.9"
+```
+
+**For PHP 8.0+:**
 ```bash
 cd /path/to/openmage/root
 composer require "typesense/typesense-php:^5.1"
 ```
+
+> **Note**: Typesense-php 5.x uses Union Types (PHP 8.0+ feature). Use 4.9.x for PHP 7.4 compatibility.
 
 This creates `composer.json` and `vendor/` directory with Typesense SDK.
 
