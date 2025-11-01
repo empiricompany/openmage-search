@@ -12,6 +12,12 @@
 class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
 {
     /**
+     * Cache for child products to avoid loading them multiple times
+     * @var array
+     */
+    private $_childProductsCache = [];
+    
+    /**
      * Get all schema fields (base + attributes)
      *
      * @return array Associative array of field definitions
@@ -50,7 +56,9 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
 
         foreach ($attributeCollection as $attribute) {
             $code = $attribute->getAttributeCode();
-            $productData[$code] = $this->getAttributeValue($product, $attribute);
+            // Set store on attribute for correct option translations
+            $attribute->setStoreId($storeId);
+            $productData[$code] = $this->getAttributeValue($product, $attribute, $storeId);
         }
 
         // Override with base data
@@ -103,7 +111,9 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
     {
         $code = $attribute->getAttributeCode();
         $type = $this->getFieldType($attribute);
-        $multiple = $attribute->getFrontendInput() === 'multiselect';
+        // Multiple if: multiselect OR (select + configurable)
+        $multiple = $attribute->getFrontendInput() === 'multiselect'
+            || ($attribute->getFrontendInput() === 'select' && $attribute->getIsConfigurable());
         $filterable = (bool) $attribute->getIsFilterableInSearch();
         $sortable = (bool) $attribute->getUsedForSortBy();
         $searchable = ($type === 'text');
@@ -122,25 +132,67 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
      *
      * @param Mage_Catalog_Model_Product $product
      * @param Mage_Catalog_Model_Resource_Eav_Attribute $attribute
+     * @param int|null $storeId Store ID for translations
      * @return mixed
      */
-    public function getAttributeValue($product, $attribute)
+    public function getAttributeValue($product, $attribute, $storeId = null)
     {
         $code = $attribute->getAttributeCode();
         $type = $this->getFieldType($attribute);
+        $isConfigurableAttr = ($attribute->getFrontendInput() === 'select' && $attribute->getIsConfigurable());
+        $isMultiselect = ($attribute->getFrontendInput() === 'multiselect');
         
+        // For configurable products with configurable attributes, aggregate child values
+        if ($product->getTypeId() === 'configurable' && $isConfigurableAttr) {
+            // Cache child products
+            $cacheKey = $product->getId() . '_' . $storeId;
+            if (!isset($this->_childProductsCache[$cacheKey])) {
+                $this->_childProductsCache[$cacheKey] = $product->getTypeInstance(true)->getUsedProducts(null, $product);
+            }
+            
+            $labels = [];
+            foreach ($this->_childProductsCache[$cacheKey] as $childProduct) {
+                $optionId = $childProduct->getData($code);
+                if ($optionId) {
+                    $label = $attribute->getSource()->getOptionText($optionId);
+                    if ($label && $label !== false) {
+                        $labels[] = (string) $label;
+                    }
+                }
+            }
+            
+            if (!empty($labels)) {
+                return array_values(array_unique($labels));
+            }
+        }
+        
+        // Standard value
+        $value = null;
         switch ($type) {
             case 'float':
-                return (float) $product->getData($code);
+                $value = (float) $product->getData($code);
+                break;
             case 'integer':
-                return (int) $product->getData($code);
+                $value = (int) $product->getData($code);
+                break;
             default:
                 if ($attribute->getFrontendInput() === 'select') {
-                    return (string) $product->getAttributeText($code);
+                    // Use source model for correct store translations
+                    $optionId = $product->getData($code);
+                    if ($optionId) {
+                        $value = (string) $attribute->getSource()->getOptionText($optionId);
+                    }
                 } else {
-                    return (string) $product->getData($code);
+                    $value = (string) $product->getData($code);
                 }
         }
+        
+        // Return array for configurable/multiselect attributes
+        if ($isConfigurableAttr || $isMultiselect) {
+            return $value ? [$value] : [];
+        }
+        
+        return $value;
     }
 
     /**
