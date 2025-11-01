@@ -123,7 +123,9 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             'multiple' => $multiple,
             'filterable' => $filterable,
             'sortable' => $sortable,
-            'searchable' => $searchable
+            'searchable' => $searchable,
+            'index' => $searchable,  // Index only searchable fields
+            'optional' => true        // All dynamic attributes are optional
         );
     }
 
@@ -209,14 +211,17 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => false,
             ),
             'sku' => array(
                 'type' => 'text',
                 'multiple' => false,
-                'filterable' => true,
+                'filterable' => false,  // Not a facet/filter
                 'sortable' => false,
                 'searchable' => true,
+                'index' => true,
                 'infix' => true,
+                'optional' => true,
             ),
             'price' => array(
                 'type' => 'float',
@@ -224,6 +229,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => true,
                 'sortable' => true,
                 'searchable' => false,
+                'optional' => false,  // Required: used as default sorting field
             ),
             'special_price' => array(
                 'type' => 'float',
@@ -231,6 +237,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => true,
                 'sortable' => true,
                 'searchable' => false,
+                'optional' => true,
             ),
             'news_from_date' => array(
                 'type' => 'text',
@@ -238,6 +245,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => true,
             ),
             'news_to_date' => array(
                 'type' => 'text',
@@ -245,6 +253,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => true,
             ),
             'url_key' => array(
                 'type' => 'text',
@@ -252,6 +261,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => true,
             ),
             'request_path' => array(
                 'type' => 'text',
@@ -259,6 +269,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => true,
             ),
             'category_names' => array(
                 'type' => 'text',
@@ -266,6 +277,8 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => true,
                 'sortable' => false,
                 'searchable' => true,
+                'index' => true,
+                'optional' => true,
             ),
             'thumbnail' => array(
                 'type' => 'text',
@@ -273,6 +286,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => true,
             ),
             'thumbnail_small' => array(
                 'type' => 'text',
@@ -280,6 +294,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => true,
             ),
             'thumbnail_medium' => array(
                 'type' => 'text',
@@ -287,6 +302,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => true,
             ),
         );
     }

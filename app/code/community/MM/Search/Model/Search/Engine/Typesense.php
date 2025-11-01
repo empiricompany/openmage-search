@@ -67,6 +67,14 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
                 $field['infix'] = true;
             }
             
+            // Add optional flag (defaults to true if not specified)
+            $field['optional'] = isset($props['optional']) ? (bool)$props['optional'] : true;
+            
+            // Add index flag if specified (for controlling full-text indexing)
+            if (isset($props['index'])) {
+                $field['index'] = (bool)$props['index'];
+            }
+            
             $typesenseFields[] = $field;
         }
         
