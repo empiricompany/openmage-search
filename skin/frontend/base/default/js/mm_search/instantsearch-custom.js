@@ -82,6 +82,23 @@
             }
         }),
 
+        /* instantsearch.widgets.currentRefinements({
+          container: "#current-refinements",
+        }), */
+
+        instantsearch.widgets.toggleRefinement({
+            container: '#discount-facet',
+            attribute: 'has_discount',
+            on: true,
+            label: 'Solo prodotti in offerta',
+            templates: {
+                labelText({ count }, { html }) {
+                    console.log('Count for discount facet:', count);
+                    return html` Solo prodotti in offerta`;
+                },
+            },
+        }),
+
         ...window.instantSearchConfig.facetBy.map(facet => {
             return facet === 'price' 
                 ? instantsearch.widgets.rangeSlider({
@@ -127,7 +144,7 @@
             },
             templates: {
                 empty: 'Nessun risultato trovato',
-                item: (hit, { html, components }) => {                    
+                item: (hit, { html, components }) => {
                     // Usa l'immagine ridimensionata se disponibile
                     const placeholderUrl = `${window.location.origin}/skin/frontend/base/default/images/catalog/product/placeholder/image.jpg`;
                     let imageUrl = placeholderUrl;

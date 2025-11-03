@@ -139,7 +139,8 @@ abstract class MM_Search_Model_Search_Engine_Abstract implements MM_Search_Model
                 'identifier' => 'string',
                 'text' => 'string',
                 'integer' => 'int32',
-                'float' => 'float'
+                'float' => 'float',
+                'bool' => 'bool',
             );
         }
         
