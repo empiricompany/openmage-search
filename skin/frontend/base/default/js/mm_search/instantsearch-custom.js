@@ -24,7 +24,6 @@
                 input: 'input-text',
             },
         }),
-
         instantsearch.widgets.stats({
             container: '#typesense-stats',
             templates: {
@@ -48,8 +47,9 @@
         instantsearch.widgets.hitsPerPage({
             container: '#typesense-per-page',
             items: [
-            { label: '12 per page', value: 12, default: true },
-            { label: '24 per page', value: 24 },
+                { label: '24 per page', value: 24, default: true },
+                { label: '36 per page', value: 36 },
+                { label: '48 per page', value: 48 }
             ],
             cssClasses: {
                 select: '',
@@ -58,7 +58,7 @@
         instantsearch.widgets.sortBy({
             container: '#typesense-sort-by',
             items: [
-                { label: 'Rilevanza', value: window.instantSearchConfig.collectionName },
+                { label: 'Rilevanza', value: `${window.instantSearchConfig.collectionName}` },
                 { label: 'Prezzo (Da minore a maggiore)', value: `${window.instantSearchConfig.collectionName}/sort/price:asc` },
                 { label: 'Prezzo (Da maggiore a minore)', value: `${window.instantSearchConfig.collectionName}/sort/price:desc` }
             ],
@@ -70,7 +70,7 @@
         instantsearch.widgets.refinementList({
             container: '#typesense-categories',
             attribute: 'category_names',
-            operator: 'or',
+            operator: 'and',
             header: 'Categorie',
             limit: 5,
             showMore: true,
@@ -88,7 +88,11 @@
                     container: `#typesense-${facet}`,
                     attribute: facet,
                     pips: false,
-                    tooltips: true,
+                    tooltips: {
+                        format: function(rawValue) {
+                            return '€' + Math.round(rawValue).toLocaleString();
+                        }
+                    },
                     templates: {
                         header: 'Prezzo'
                     },
@@ -99,7 +103,7 @@
                 : instantsearch.widgets.refinementList({
                     container: `#typesense-${facet}`,
                     attribute: facet,
-                    operator: 'or',
+                    operator: 'and',
                     limit: 5,
                     showMore: true,
                     showMoreLimit: 10,

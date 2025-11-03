@@ -197,6 +197,10 @@
     color: #333;
 }
 
+.typesense-facets dt:has(+ dd .ais-RefinementList--noRefinement) {
+  display: none;
+}
+
 .typesense-facets .ais-RefinementList-item {
     margin-bottom: 5px;
 }
