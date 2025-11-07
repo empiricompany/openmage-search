@@ -81,8 +81,7 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
         // Create collection with schema
         $schema = [
             'name' => $collectionName,
-            'fields' => $typesenseFields,
-            'default_sorting_field' => 'price'
+            'fields' => $typesenseFields
         ];
         
         $this->_helper->debug(
