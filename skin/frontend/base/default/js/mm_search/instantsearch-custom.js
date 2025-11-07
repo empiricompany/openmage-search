@@ -54,7 +54,7 @@
                 text: 'text-muted',
             },
         }),
-        instantsearch.widgets.hitsPerPage({
+        /* instantsearch.widgets.hitsPerPage({
             container: '#typesense-per-page',
             items: [
                 { label: '24 per page', value: 24, default: true },
@@ -64,7 +64,7 @@
             cssClasses: {
                 select: '',
             },
-        }),
+        }), */
         instantsearch.widgets.sortBy({
             container: '#typesense-sort-by',
             items: [
@@ -82,13 +82,16 @@
             attribute: 'category_names',
             operator: 'and',
             header: 'Categorie',
-            limit: 5,
+            limit: 10,
             showMore: true,
-            showMoreLimit: 10,
-            searchable: false,
+            showMoreLimit: 100,
+            searchable: true,
             searchablePlaceholder: 'Cerca categorie...',
             templates: {
-                header: 'Categorie'
+                header: 'Categorie',
+                showMoreText(data, { html }) {
+                    return html`<span class="btn btn-xs">${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
+                },
             }
         }),
 
@@ -100,6 +103,7 @@
             container: '#discount-facet',
             attribute: 'has_discount',
             on: true,
+            operator: 'and',
             label: 'Solo prodotti in offerta',
             templates: {
                 labelText({ count }, { html }) {
@@ -131,12 +135,16 @@
                     container: `#typesense-${facet}`,
                     attribute: facet,
                     operator: 'and',
-                    limit: 5,
+                    limit: 10,
                     showMore: true,
-                    showMoreLimit: 10,
-                    searchable: false,
+                    showMoreLimit: 100,
+                    searchable: true,
+                    searchablePlaceholder: 'Cerca...',
                     templates: {
-                        header: facet.charAt(0).toUpperCase() + facet.slice(1).replace(/_/g, ' ')
+                        header: facet.charAt(0).toUpperCase() + facet.slice(1).replace(/_/g, ' '),
+                        showMoreText(data, { html }) {
+                            return html`<span class="btn btn-xs">${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
+                        },
                     }
                 })
             }
@@ -259,6 +267,8 @@
 
     mainInput.addEventListener('click', function() {
         overlay.classList.add('active');
+        // remove x-clock
+        overlay.removeAttribute('x-cloak');
         document.body.style.overflow = 'hidden';
         
         if (!searchStarted) {
