@@ -178,10 +178,21 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 $value = (int) $product->getData($code);
                 break;
             default:
-                if ($attribute->getFrontendInput() === 'select') {
+                if ($attribute->getFrontendInput() === 'select' || $isMultiselect) {
                     // Use source model for correct store translations
                     $optionId = $product->getData($code);
                     if ($optionId) {
+                        if($isMultiselect) {
+                            $optionIds = explode(',', $optionId);
+                            $values = [];
+                            foreach ($optionIds as $id) {
+                                $label = $attribute->getSource()->getOptionText($id);
+                                if ($label && $label !== false) {
+                                    $values[] = (string) $label;
+                                }
+                            }
+                            return $values;
+                        }
                         $value = (string) $attribute->getSource()->getOptionText($optionId);
                     }
                 } else {
@@ -225,6 +236,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             ),
             'price' => array(
                 'type' => 'float',
+                'range_index' => true,
                 'multiple' => false,
                 'filterable' => true,
                 'sortable' => true,
@@ -233,6 +245,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             ),
             'special_price' => array(
                 'type' => 'float',
+                'range_index' => true,
                 'multiple' => false,
                 'filterable' => true,
                 'sortable' => true,
