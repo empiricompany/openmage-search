@@ -70,7 +70,9 @@
             items: [
                 { label: 'Rilevanza', value: `${window.instantSearchConfig.collectionName}` },
                 { label: 'Prezzo (Da minore a maggiore)', value: `${window.instantSearchConfig.collectionName}/sort/price:asc` },
-                { label: 'Prezzo (Da maggiore a minore)', value: `${window.instantSearchConfig.collectionName}/sort/price:desc` }
+                { label: 'Prezzo (Da maggiore a minore)', value: `${window.instantSearchConfig.collectionName}/sort/price:desc` },
+                { label: 'Nome (A-Z)', value: `${window.instantSearchConfig.collectionName}/sort/name:asc` },
+                { label: 'Nome (Z-A)', value: `${window.instantSearchConfig.collectionName}/sort/name:desc` }
             ],
             cssClasses: {
                 root: 'sort-by',

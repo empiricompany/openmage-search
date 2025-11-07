@@ -122,7 +122,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             'type' => $type,
             'multiple' => $multiple,
             'filterable' => $filterable,
-            'sortable' => $sortable,
+            'sortable' => ($sortable && !$multiple), // Only single-valued fields can be sortable
             'searchable' => $searchable,
             'index' => $searchable,  // Index only searchable fields
             'optional' => true        // All dynamic attributes are optional
@@ -233,6 +233,15 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'index' => true,
                 'infix' => true,
                 'optional' => true,
+            ),
+            'name' => array(
+                'type' => 'text',
+                'multiple' => false,
+                'filterable' => false,
+                'sortable' => true,
+                'searchable' => true,
+                'index' => true,
+                'optional' => false,
             ),
             'price' => array(
                 'type' => 'float',
@@ -352,6 +361,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
         return array(
             'id' => (string) $product->getId(),
             'sku' => (string) $product->getSku(),
+            'name' => (string) $product->getName(),
             'price' => (float) $product->getPrice(),
             'special_price' => (float) $product->getFinalPrice(),
             'has_discount' => (bool) ($product->getFinalPrice() < $product->getPrice()),
