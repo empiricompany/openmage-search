@@ -80,7 +80,7 @@
         }),
 
         instantsearch.widgets.refinementList({
-            container: '#typesense-categories',
+            container: '#typesense-category_names',
             attribute: 'category_names',
             operator: 'or',
             header: 'Categorie',
@@ -98,18 +98,45 @@
         }),
 
         instantsearch.widgets.currentRefinements({
-          container: "#current-refinements",
+            container: "#current-refinements",
+
+            transformItems(items) {
+                return items.map(item => {
+                    const labelElement = document.getElementById('typesense-' + item.attribute);
+                    const readableLabel = labelElement
+                        ? labelElement.previousElementSibling.textContent.trim()
+                        : item.attribute.charAt(0).toUpperCase() + item.attribute.slice(1).replace(/_/g, ' ');
+
+                    const transformedRefinements = item.refinements.map(ref => {
+                        // Se il valore è booleano, mostra solo l’etichetta del filtro
+                        if (ref.value === "true" || ref.value === "false") {
+                        return {
+                            ...ref,
+                            label: readableLabel
+                        };
+                        }
+
+                        // Altrimenti lascia invariato
+                        return ref;
+                    });
+
+                    return {
+                        ...item,
+                        label: readableLabel,
+                        refinements: transformedRefinements,
+                    };
+                });
+            },
         }),
 
         instantsearch.widgets.toggleRefinement({
-            container: '#discount-facet',
+            container: '#typesense-has_discount',
             attribute: 'has_discount',
             on: true,
             operator: 'or',
             label: 'Solo prodotti in offerta',
             templates: {
                 labelText({ count }, { html }) {
-                    console.log('Count for discount facet:', count);
                     return html` Solo prodotti in offerta`;
                 },
             },
