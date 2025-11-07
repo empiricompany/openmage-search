@@ -82,7 +82,7 @@
         instantsearch.widgets.refinementList({
             container: '#typesense-categories',
             attribute: 'category_names',
-            operator: 'and',
+            operator: 'or',
             header: 'Categorie',
             limit: 10,
             showMore: true,
@@ -97,15 +97,15 @@
             }
         }),
 
-        /* instantsearch.widgets.currentRefinements({
+        instantsearch.widgets.currentRefinements({
           container: "#current-refinements",
-        }), */
+        }),
 
         instantsearch.widgets.toggleRefinement({
             container: '#discount-facet',
             attribute: 'has_discount',
             on: true,
-            operator: 'and',
+            operator: 'or',
             label: 'Solo prodotti in offerta',
             templates: {
                 labelText({ count }, { html }) {
@@ -136,7 +136,7 @@
                 : instantsearch.widgets.refinementList({
                     container: `#typesense-${facet}`,
                     attribute: facet,
-                    operator: 'and',
+                    operator: 'or',
                     limit: 10,
                     showMore: true,
                     showMoreLimit: 100,
