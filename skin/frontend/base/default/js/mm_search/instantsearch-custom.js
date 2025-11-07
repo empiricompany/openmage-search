@@ -3,6 +3,7 @@
         indexName: window.instantSearchConfig.collectionName,
         searchClient,
         numberLocale: 'it',
+        routing: true,
         initialUiState: {
             [window.instantSearchConfig.collectionName]: {
                 query: document.getElementById('search').value
@@ -10,13 +11,21 @@
         }
     });
 
+    let InstantSearchtimerId;
+    let InstantSearchtimeout = 200; // Debounce timeout in milliseconds
+
     search.addWidgets([
+        
         instantsearch.widgets.searchBox({
             container: '#typesense-searchbox',
             placeholder: 'Cerca prodotti...',
             autofocus: true,
             searchAsYouType: true,
-            showReset: false,
+            queryHook(query, refine) {
+                clearTimeout(InstantSearchtimerId);
+                InstantSearchtimerId = setTimeout(() => refine(query), InstantSearchtimeout);
+            },
+            showReset: true,
             showSubmit: false,
             showLoadingIndicator: true,
             cssClasses: {
@@ -24,6 +33,7 @@
                 input: 'input-text',
             },
         }),
+
         instantsearch.widgets.stats({
             container: '#typesense-stats',
             templates: {
