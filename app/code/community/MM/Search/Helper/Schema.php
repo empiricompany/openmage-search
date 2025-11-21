@@ -154,6 +154,9 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             
             $labels = [];
             foreach ($this->_childProductsCache[$cacheKey] as $childProduct) {
+                /**
+                 * @var Mage_Catalog_Model_Product $childProduct
+                 */
                 $optionId = $childProduct->getData($code);
                 if ($optionId) {
                     $label = $attribute->getSource()->getOptionText($optionId);
