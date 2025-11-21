@@ -157,6 +157,9 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 /**
                  * @var Mage_Catalog_Model_Product $childProduct
                  */
+                if (!$childProduct->getStockItem()->getIsInStock()) {
+                    continue;
+                }
                 $optionId = $childProduct->getData($code);
                 if ($optionId) {
                     $label = $attribute->getSource()->getOptionText($optionId);
