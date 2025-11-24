@@ -68,7 +68,7 @@
         instantsearch.widgets.sortBy({
             container: '#typesense-sort-by',
             items: [
-                { label: 'Rilevanza', value: `${window.instantSearchConfig.collectionName}` },
+                { label: 'Rilevanza', value: `${window.instantSearchConfig.collectionName}/sort/_text_match:desc` },
                 { label: 'Prezzo (Da minore a maggiore)', value: `${window.instantSearchConfig.collectionName}/sort/price:asc` },
                 { label: 'Prezzo (Da maggiore a minore)', value: `${window.instantSearchConfig.collectionName}/sort/price:desc` },
                 { label: 'Nome (A-Z)', value: `${window.instantSearchConfig.collectionName}/sort/name:asc` },
@@ -133,7 +133,7 @@
             container: '#typesense-has_discount',
             attribute: 'has_discount',
             on: true,
-            operator: 'or',
+            operator: 'and',
             label: 'Solo prodotti in offerta',
             templates: {
                 labelText({ count }, { html }) {
@@ -147,6 +147,7 @@
                 ? instantsearch.widgets.rangeSlider({
                     container: `#typesense-${facet}`,
                     attribute: facet,
+                    operator: 'and',
                     pips: false,
                     tooltips: {
                         format: function(rawValue) {
