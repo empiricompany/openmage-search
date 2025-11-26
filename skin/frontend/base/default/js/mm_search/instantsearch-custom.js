@@ -181,7 +181,6 @@ search.addWidgets([
         };
 
         if (swatchConfig && swatchConfig.options) {
-            widgetConfig.showMore = false; // Disable show more for swatches
             widgetConfig.searchable = false; // Disable searchable for swatches
             widgetConfig.templates.item = (item, { html }) => {
                 const labelText = item.label;
