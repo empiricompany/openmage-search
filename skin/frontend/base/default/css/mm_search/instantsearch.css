@@ -242,6 +242,67 @@
 .typesense-facets dt:has(+dd .ais-RefinementList--noRefinement) {
   display:none
 }
+/* Swatches */
+.typesense-facets .configurable-swatch-list {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 5px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+}
+
+.typesense-facets .configurable-swatch-list li {
+    display: inline-block;
+    margin: 0 5px 5px 0;
+    vertical-align: top;
+    line-height: 1;
+    width: auto;
+}
+
+.typesense-facets .swatch-link {
+    display: inline-block;
+    text-decoration: none;
+    border: 1px solid #e4e4e4;
+    padding: 0;
+    position: relative;
+    transition: border-color 0.2s ease;
+    vertical-align: top;
+}
+
+.typesense-facets .swatch-link:hover {
+    border-color: #3399cc;
+}
+
+.typesense-facets .swatch-link.selected,
+.typesense-facets .swatch-link.selected {
+    border-color: #3399cc;
+    border-width: 2px;
+}
+
+.typesense-facets .swatch-link.selected .swatch-label {
+    border-color: #3399cc !important;
+}
+
+.typesense-facets .swatch-label {
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+    line-height: 1;
+    border: 2px solid #e4e4e4 !important;
+    padding: 0;
+    margin: 0;
+}
+
+.typesense-facets .swatch-link.has-image .swatch-label {
+    border: none;
+    padding: 0;
+}
+
+.typesense-facets .swatch-link img {
+    display: block;
+    border: 0;
+}
 
 .typesense-facets .ais-RefinementList-item {
     margin-bottom: 5px;

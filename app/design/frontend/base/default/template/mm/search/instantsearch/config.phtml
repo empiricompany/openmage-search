@@ -20,6 +20,7 @@ $_helper = $this->helper('mm_search');
         collectionName: '<?php echo $_helper->getCollectionName() ?>',
         storeCode: '<?php echo Mage::app()->getStore()->getCode() ?>',
         facetBy: <?php echo json_encode($this->getFacetFields()) ?>,
+        swatches: <?php echo json_encode($this->getSwatchData()) ?>,
         cacheSearchResultsForSeconds: <?php echo $_helper->getCacheLifetime() ?>,
     };
 </script>
