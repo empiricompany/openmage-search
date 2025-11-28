@@ -108,15 +108,12 @@ search.addWidgets([
                     : item.attribute.charAt(0).toUpperCase() + item.attribute.slice(1).replace(/_/g, ' ');
 
                 const transformedRefinements = item.refinements.map(ref => {
-                    // Se il valore è booleano, mostra solo l’etichetta del filtro
                     if (ref.value === "true" || ref.value === "false") {
-                    return {
-                        ...ref,
-                        label: readableLabel
-                    };
+                        return {
+                            ...ref,
+                            label: readableLabel
+                        };
                     }
-
-                    // Altrimenti lascia invariato
                     return ref;
                 });
 
@@ -143,8 +140,10 @@ search.addWidgets([
     }),
 
     ...window.instantSearchConfig.facetBy.map(facet => {
-        return facet === 'price' 
-            ? instantsearch.widgets.rangeSlider({
+        const swatchConfig = window.instantSearchConfig.swatches && window.instantSearchConfig.swatches[facet];
+
+        if (facet === 'price') {
+            return instantsearch.widgets.rangeSlider({
                 container: `#typesense-${facet}`,
                 attribute: facet,
                 operator: 'and',
@@ -160,25 +159,74 @@ search.addWidgets([
                 cssClasses: {
                     root: 'price-range-slider',
                 }
-            })
-            : instantsearch.widgets.refinementList({
-                container: `#typesense-${facet}`,
-                attribute: facet,
-                operator: 'or',
-                limit: 10,
-                showMore: true,
-                showMoreLimit: 100,
-                searchable: true,
-                searchablePlaceholder: 'Cerca...',
-                templates: {
-                    header: facet.charAt(0).toUpperCase() + facet.slice(1).replace(/_/g, ' '),
-                    showMoreText(data, { html }) {
-                        return html`<span class="btn btn-xs">${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
-                    },
-                }
-            })
+            });
         }
-    ),
+
+        const widgetConfig = {
+            container: `#typesense-${facet}`,
+            attribute: facet,
+            operator: 'or',
+            sortBy: ['name:asc'],
+            limit: 10,
+            showMore: true,
+            showMoreLimit: 100,
+            searchable: true,
+            searchablePlaceholder: 'Cerca...',
+            templates: {
+                header: facet.charAt(0).toUpperCase() + facet.slice(1).replace(/_/g, ' '),
+                showMoreText(data, { html }) {
+                    return html`<span class="btn btn-xs">${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
+                },
+            }
+        };
+
+        if (swatchConfig && swatchConfig.options) {
+            widgetConfig.showMore = false; // Disable show more for swatches
+            widgetConfig.searchable = false; // Disable searchable for swatches
+            widgetConfig.templates.item = (item, { html }) => {
+                const labelText = item.label;
+                const imageUrl = swatchConfig.options[labelText];
+                const count = item.count;
+                const isRefined = item.isRefined;
+                const linkClass = isRefined ? 'swatch-link has-image selected' : 'swatch-link has-image';
+                const dimensions = swatchConfig.dimensions;
+                const labelStyle = `height: ${dimensions.outerHeight}px; width: ${dimensions.outerWidth}px;`;
+
+                if (imageUrl) {
+                    return html`
+                        <label class="ais-RefinementList-label ${linkClass}" title="${labelText}">
+                            <span class="ais-RefinementList-labelText swatch-label" style="${labelStyle}">
+                                <img
+                                    src="${imageUrl}"
+                                    alt="${labelText}"
+                                    title="${labelText}"
+                                    width="${dimensions.innerWidth}"
+                                    height="${dimensions.innerHeight}"
+                                />
+                            </span>
+                            <span class="ais-RefinementList-count">${count}</span>
+                        </label>
+                    `;
+                } else {
+                    const linkClass = isRefined ? 'swatch-link selected' : 'swatch-link';
+                    return html`
+                        <label class="ais-RefinementList-label ${linkClass}" title="${labelText}">
+                            <span class="ais-RefinementList-labelText swatch-label">
+                                ${labelText}
+                            </span>
+                            <span class="ais-RefinementList-count">${count}</span>
+                        </label>
+                    `;
+                }
+            };
+            widgetConfig.cssClasses = {
+                list: 'configurable-swatch-list',
+                item: '',
+                label: ''
+            };
+        }
+        return instantsearch.widgets.refinementList(widgetConfig);
+    }),
 
     instantsearch.widgets.infiniteHits({
         container: '#typesense-hits',
@@ -193,7 +241,6 @@ search.addWidgets([
         templates: {
             empty: 'Nessun risultato trovato',
             item: (hit, { html, components }) => {
-                // Usa l'immagine ridimensionata se disponibile
                 const placeholderUrl = `${window.location.origin}/skin/frontend/base/default/images/catalog/product/placeholder/image.jpg`;
                 let imageUrl = placeholderUrl;
                 if (hit.thumbnail_medium) {
@@ -227,7 +274,7 @@ search.addWidgets([
                 const toDate = hit.news_to_date ? new Date(hit.news_to_date) : null;
                 
                 const isNew = (
-                    (fromDate && now >= fromDate) && 
+                    (fromDate && now >= fromDate) &&
                     (!toDate || now <= toDate)
                 );
                 
@@ -310,6 +357,7 @@ mainInput.addEventListener('click', function() {
         } catch (error) {
             console.error('Error starting InstantSearch:', error);
         }
+
     }
 });
 
@@ -350,8 +398,48 @@ mainInput.addEventListener('input', function(e) {
     }
 });
 
+let loadMoreObserver = null;
+
+function setupInfiniteScrollObserver() {
+    const loadMoreButton = document.querySelector('#typesense-hits .ais-InfiniteHits-loadMore:not(.ais-InfiniteHits-loadMore--disabled)');
+    
+    if (!loadMoreButton) {
+        if (loadMoreObserver) {
+            loadMoreObserver.disconnect();
+            loadMoreObserver = null;
+        }
+        return;
+    }
+
+    if (loadMoreObserver && loadMoreButton.dataset.observed === 'true') {
+        return;
+    }
+
+    if (loadMoreObserver) {
+        loadMoreObserver.disconnect();
+    }
+
+    loadMoreObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const button = entry.target;
+                if (!button.classList.contains('ais-InfiniteHits-loadMore--disabled')) {
+                    button.click();
+                }
+            }
+        });
+    }, {
+        root: null,
+        rootMargin: '200px',
+        threshold: 0.1
+    });
+
+    loadMoreObserver.observe(loadMoreButton);
+    loadMoreButton.dataset.observed = 'true';
+}
+
 search.on('render', function() {
-    //console.log('Search results rendered');
+    setupInfiniteScrollObserver();
 });
 
 search.on('error', function(error) {
