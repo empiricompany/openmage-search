@@ -68,6 +68,7 @@ class MM_Search_Model_Indexer_Product
                 ->addAttributeToSelect(array('thumbnail', 'url_key', 'news_from_date', 'news_to_date'))
                 ->addPriceData()
                 ->addUrlRewrite()
+                ->isSalable()
                 ->setVisibility(array(
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_IN_SEARCH,
                     Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH
