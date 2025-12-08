@@ -195,14 +195,7 @@ export class SearchSuggestions {
             `;
         }
         
-        // No results
-        if (html === '' && query.length >= this._minChars) {
-            html = `
-                <div class="ss-empty">
-                    Nessun suggerimento per "${this._escapeHtml(query)}"
-                </div>
-            `;
-        }
+        // No results - hide dropdown instead of showing message
         
         this._dropdown.innerHTML = html;
         this._highlightedIndex = -1;
