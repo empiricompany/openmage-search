@@ -164,6 +164,7 @@ export class InstantSearchApp {
     _createFacetWidgets() {
         const widgets = [];
         const facets = this._config.facetBy || [];
+        const swatches = this._config.swatches || {};
 
         facets.forEach(facet => {
             if (facet === 'price') {
@@ -179,7 +180,9 @@ export class InstantSearchApp {
                     }
                 }));
             } else {
-                widgets.push(refinementList({
+                const swatchConfig = swatches[facet];
+                
+                const widgetConfig = {
                     container: `#typesense-${facet}`,
                     attribute: facet,
                     operator: 'or',
@@ -193,7 +196,55 @@ export class InstantSearchApp {
                             return html`<span class="btn btn-xs">${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
                         },
                     }
-                }));
+                };
+
+                // Apply swatch configuration if available
+                if (swatchConfig && swatchConfig.options) {
+                    widgetConfig.searchable = false;
+                    widgetConfig.templates.item = (item, { html }) => {
+                        const labelText = item.label;
+                        const imageUrl = swatchConfig.options[labelText];
+                        const count = item.count;
+                        const isRefined = item.isRefined;
+                        const dimensions = swatchConfig.dimensions || { outerWidth: 23, outerHeight: 23, innerWidth: 21, innerHeight: 21 };
+                        const labelStyle = `height: ${dimensions.outerHeight}px; width: ${dimensions.outerWidth}px;`;
+
+                        if (imageUrl) {
+                            const linkClass = isRefined ? 'swatch-link has-image selected' : 'swatch-link has-image';
+                            return html`
+                                <label class="ais-RefinementList-label ${linkClass}" title="${labelText}">
+                                    <span class="ais-RefinementList-labelText swatch-label" style="${labelStyle}">
+                                        <img
+                                            src="${imageUrl}"
+                                            alt="${labelText}"
+                                            title="${labelText}"
+                                            width="${dimensions.innerWidth}"
+                                            height="${dimensions.innerHeight}"
+                                        />
+                                    </span>
+                                    <span class="ais-RefinementList-count">${count}</span>
+                                </label>
+                            `;
+                        } else {
+                            const linkClass = isRefined ? 'swatch-link selected' : 'swatch-link';
+                            return html`
+                                <label class="ais-RefinementList-label ${linkClass}" title="${labelText}">
+                                    <span class="ais-RefinementList-labelText swatch-label">
+                                        ${labelText}
+                                    </span>
+                                    <span class="ais-RefinementList-count">${count}</span>
+                                </label>
+                            `;
+                        }
+                    };
+                    widgetConfig.cssClasses = {
+                        list: 'configurable-swatch-list',
+                        item: '',
+                        label: ''
+                    };
+                }
+
+                widgets.push(refinementList(widgetConfig));
             }
         });
 
