@@ -12,6 +12,7 @@ export class OverlayManager {
             overlay: options.overlaySelector || '#typesense-overlay',
             mainInput: options.inputSelector || '#search',
             closeBtn: options.closeBtnSelector || '.typesense-close-btn',
+            searchBoxInput: options.searchBoxInputSelector || '#typesense-searchbox input.ais-SearchBox-input',
             loadMoreBtn: '#typesense-hits .ais-InfiniteHits-loadMore:not(.ais-InfiniteHits-loadMore--disabled)'
         };
     }
@@ -48,12 +49,8 @@ export class OverlayManager {
             }
         });
 
-        // Sync input with search
-        this._mainInput.addEventListener('input', (e) => {
-            if (this._app.isStarted()) {
-                this._app.setQuery(e.target.value);
-            }
-        });
+        // The main input is just a trigger - user types in the searchBox inside overlay
+        // No need to sync input with search
 
         // Prevent form submit on Enter - intercept all forms in overlay
         this._overlay.addEventListener('submit', (e) => {
@@ -67,6 +64,11 @@ export class OverlayManager {
         this._overlay.removeAttribute('x-cloak');
         document.body.style.overflow = 'hidden';
 
+        // Blur the placeholder input to prevent typing there
+        if (this._mainInput) {
+            this._mainInput.blur();
+        }
+
         if (!this._app.isStarted()) {
             try {
                 this._app.start();
@@ -74,6 +76,19 @@ export class OverlayManager {
                 console.error('Error starting InstantSearch:', error);
             }
         }
+
+        // Focus on the searchBox input inside the overlay
+        this._focusSearchBox();
+    }
+
+    _focusSearchBox() {
+        // Small delay to ensure the searchBox is rendered
+        setTimeout(() => {
+            const searchBoxInput = document.querySelector(this._selectors.searchBoxInput);
+            if (searchBoxInput) {
+                searchBoxInput.focus();
+            }
+        }, 100);
     }
 
     _closeOverlay() {

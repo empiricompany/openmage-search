@@ -253,7 +253,7 @@ export class InstantSearchApp {
 
     _buildWidgets() {
         const widgets = [];
-        const hitTemplateInstance = this.templates.create('hit');
+        const hitTemplateInstance = this.templates.create('hit', this._config);
 
         // SearchBox
         const searchBoxConfig = this.widgets.getConfig('searchBox');
@@ -309,12 +309,7 @@ export class InstantSearchApp {
             indexName: this._config.collectionName,
             searchClient: adapter.searchClient,
             numberLocale: 'it',
-            routing: false,
-            initialUiState: {
-                [this._config.collectionName]: {
-                    query: document.getElementById('search')?.value || ''
-                }
-            }
+            routing: false
         });
 
         this._search.addWidgets(this._buildWidgets());
@@ -342,12 +337,6 @@ export class InstantSearchApp {
 
     isStarted() {
         return this._started;
-    }
-
-    setQuery(query) {
-        if (this._search && this._search.helper) {
-            this._search.helper.setQuery(query).search();
-        }
     }
 
     getSearch() {

@@ -5,9 +5,10 @@ import { HitHelpers } from './HitHelpers.js';
  * Clients can extend this by using templates.extend('hit', {...})
  */
 export class HitTemplate {
-    constructor(options = {}) {
-        this.placeholderUrl = options.placeholderUrl || 
-            '/skin/frontend/rwd/lightclean/images/catalog/product/placeholder/image.jpg';
+    static DEFAULT_PLACEHOLDER = '/skin/frontend/base/default/images/catalog/product/placeholder/image.jpg';
+
+    constructor(config = {}) {
+        this.placeholderUrl = config.placeholderUrl || HitTemplate.DEFAULT_PLACEHOLDER;
     }
 
     /**
