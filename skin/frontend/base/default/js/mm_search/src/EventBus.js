@@ -14,6 +14,14 @@ export class EventBus {
         return () => this.off(event, callback);
     }
 
+    once(event, callback) {
+        const wrapper = (...args) => {
+            this.off(event, wrapper);
+            callback(...args);
+        };
+        return this.on(event, wrapper);
+    }
+
     off(event, callback) {
         const callbacks = this._listeners.get(event);
         if (callbacks) {

@@ -1,0 +1,100 @@
+/**
+ * Search Suggestions Dropdown - Base Styles
+ * Used by SearchSuggestions.js for unified recent searches + query suggestions
+ */
+
+.search-suggestions-dropdown {
+    font-family: inherit;
+    font-size: 14px;
+}
+
+/* Section */
+.ss-section {
+    padding: 8px 0;
+}
+
+.ss-section + .ss-section {
+    border-top: 1px solid #e9ecef;
+}
+
+.ss-section-header {
+    padding: 4px 16px 8px;
+}
+
+.ss-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+}
+
+/* List */
+.ss-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Item */
+.ss-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.ss-item:hover,
+.ss-item--highlighted {
+    background: #f8f9fa;
+}
+
+.ss-item-text {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ss-item-text mark {
+    background: #fff3cd;
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+
+.ss-item-delete {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    margin-left: 8px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 1;
+    color: #adb5bd;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.15s ease;
+}
+
+.ss-item:hover .ss-item-delete {
+    opacity: 1;
+}
+
+.ss-item-delete:hover {
+    background: #dee2e6;
+    color: #495057;
+}
+
+/* Empty state */
+.ss-empty {
+    padding: 20px 16px;
+    text-align: center;
+    color: #6c757d;
+}

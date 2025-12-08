@@ -18,6 +18,7 @@ $_helper = $this->helper('mm_search');
             path: '',
         <?php endif; ?>
         collectionName: '<?php echo $_helper->getCollectionName() ?>',
+        queriesCollection: '<?php echo $_helper->getCollectionName() ?>-product_queries',
         storeCode: '<?php echo Mage::app()->getStore()->getCode() ?>',
         facetBy: <?php echo json_encode($this->getFacetFields()) ?>,
         swatches: <?php echo json_encode($this->getSwatchData()) ?>,

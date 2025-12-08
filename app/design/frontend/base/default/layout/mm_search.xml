@@ -14,6 +14,11 @@
                 <params><![CDATA[rel="preload" as="style" data-mm-lazy-css]]></params>
             </action>
             <action method="addItem">
+                <type>skin_css</type>
+                <name>css/mm_search/suggestions.css</name>
+                <params><![CDATA[rel="preload" as="style" data-mm-lazy-css]]></params>
+            </action>
+            <action method="addItem">
                 <type>skin_js</type>
                 <name helper="mm_search/getInstantSearchBundleJs" />
                 <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>

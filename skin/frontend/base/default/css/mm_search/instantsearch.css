@@ -46,6 +46,27 @@
     flex: 1;
 }
 
+/* SearchBox form relative positioning for ghost */
+#typesense-searchbox .ais-SearchBox-form {
+    position: relative;
+}
+
+/* Input with inline autocomplete */
+#typesense-searchbox .ais-SearchBox-input.inline-autocomplete-input {
+    position: relative;
+    z-index: 2;
+}
+
+/* Search icon above ghost */
+.ais-SearchBox-form::before {
+    z-index: 3;
+}
+
+/* Reset button above all layers */
+.ais-SearchBox-reset {
+    z-index: 10;
+}
+
 .typesense-close-btn {
     background: none;
     border: none;

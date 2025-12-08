@@ -16,6 +16,8 @@ import { HitHelpers } from './HitHelpers.js';
 import { HitTemplate } from './HitTemplate.js';
 import { InstantSearchApp } from './InstantSearchApp.js';
 import { OverlayManager } from './OverlayManager.js';
+import { InlineAutocomplete } from './InlineAutocomplete.js';
+import { SearchSuggestions } from './SearchSuggestions.js';
 
 /**
  * Factory function to create and initialize the search application
@@ -42,7 +44,56 @@ function initSearch(config, customizeFn = null) {
     const overlay = new OverlayManager(app);
     overlay.init();
     
-    return { app, overlay };
+    // Initialize suggestions components AFTER first render (when searchBox input exists)
+    let searchSuggestions = null;
+    let inlineAutocomplete = null;
+    let suggestionsInitialized = false;
+    
+    const initSuggestions = () => {
+        if (suggestionsInitialized) return;
+        
+        const searchBoxInput = document.querySelector('#typesense-searchbox input.ais-SearchBox-input');
+        
+        if (!searchBoxInput) {
+            console.warn('[MMSearch] SearchBox input not found yet');
+            return;
+        }
+        
+        suggestionsInitialized = true;
+        
+        // Initialize unified search suggestions (dropdown with recent + suggestions)
+        searchSuggestions = new SearchSuggestions(config);
+        searchSuggestions.init('#typesense-searchbox input.ais-SearchBox-input');
+        
+        // Initialize inline autocomplete (typeahead ghost text in input)
+        inlineAutocomplete = new InlineAutocomplete(config);
+        inlineAutocomplete.init('#typesense-searchbox input.ais-SearchBox-input');
+        
+        // Save recent search when user presses Enter
+        searchBoxInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && searchSuggestions) {
+                const currentQuery = searchBoxInput.value.trim();
+                if (currentQuery.length >= 2) {
+                    searchSuggestions.addRecentSearch(currentQuery);
+                }
+            }
+        });
+        
+        console.log('[MMSearch] Suggestions initialized');
+    };
+    
+    // Wait for first render to initialize suggestions
+    app.events.once('render', () => {
+        // Small delay to ensure DOM is updated
+        setTimeout(initSuggestions, 50);
+    });
+    
+    return {
+        app,
+        overlay,
+        getSearchSuggestions: () => searchSuggestions,
+        getInlineAutocomplete: () => inlineAutocomplete
+    };
 }
 
 // Expose on window for use by instantsearch-custom.js
@@ -52,6 +103,8 @@ window.MMSearch = {
     OverlayManager,
     HitTemplate,
     HitHelpers,
+    SearchSuggestions,
+    InlineAutocomplete,
     
     // Registries
     TemplateRegistry,
