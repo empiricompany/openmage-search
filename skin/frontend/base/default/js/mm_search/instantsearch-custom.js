@@ -23,6 +23,7 @@
         // const helpers = window.MMSearch.HitHelpers;
         
         /*
+        // --- Hit Template Customization ---
         app.templates.extend('hit', {
             placeholderUrl: '/skin/frontend/mytheme/images/placeholder.jpg',
 
@@ -33,11 +34,20 @@
             }
         });
 
+        // --- Widget Configuration ---
         app.widgets.configure('stats', {
             cssClasses: { text: 'my-custom-class' }
         });
 
+        // --- Remove Widget ---
         app.widgets.remove('categoryNames');
+
+        // --- Disable Swatches ---
+        // To disable swatches for all facets, clear the swatches config:
+        // config.swatches = {};
+        //
+        // Or disable for a specific facet:
+        // if (config.swatches) delete config.swatches['colore'];
         */
     });
 
