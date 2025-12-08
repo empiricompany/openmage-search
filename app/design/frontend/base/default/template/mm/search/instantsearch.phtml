@@ -38,7 +38,7 @@ $_helper = $this->helper('mm_search');
                                     <dt>
                                         <?php
                                         $attribute = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $value);
-                                        echo $this->htmlEscape($attribute->getStoreLabel());
+                                        echo $this->escapeHtml($attribute->getStoreLabel());
                                         ?>
                                     </dt>
                                     <dd id="typesense-<?php echo $value ?>" ></dd>

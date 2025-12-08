@@ -1,5 +1,6 @@
 /.cline
+/node_modules
+package-lock.json
 
-# Ignore all markdown files except README.md
 *.md
 !README.md

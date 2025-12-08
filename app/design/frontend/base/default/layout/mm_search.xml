@@ -6,20 +6,16 @@
             <action method="addItem">
                 <type>skin_css</type>
                 <name>css/mm_search/instantsearch/theme/reset.css</name>
+                <params><![CDATA[rel="preload" as="style" data-mm-lazy-css]]></params>
             </action>
             <action method="addItem">
                 <type>skin_css</type>
                 <name>css/mm_search/instantsearch.css</name>
-            </action>
-            <!-- Core libraries loaded lazily in head -->
-            <action method="addItem">
-                <type>skin_js</type>
-                <name>js/mm_search/instantsearch.min.js</name>
-                <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>
+                <params><![CDATA[rel="preload" as="style" data-mm-lazy-css]]></params>
             </action>
             <action method="addItem">
                 <type>skin_js</type>
-                <name helper="mm_search/getInstantSearchAdapterJs" />
+                <name helper="mm_search/getInstantSearchBundleJs" />
                 <params><![CDATA[type="text/mm-instantsearch-lazy"]]></params>
             </action>
         </reference>
@@ -31,7 +27,6 @@
         </reference>
         
         <reference name="before_body_end">
-            <!-- Lazy-loaded configuration -->
             <block type="mm_search/instantsearch" name="mm_search.instantsearch.config" template="mm/search/instantsearch/config.phtml" />
             <block type="mm_search/instantsearch" name="mm_search.instantsearch.engine_config" after="mm_search.instantsearch.config">
                 <action method="setTemplate">
@@ -44,7 +39,6 @@
                 <action method="setScriptType"><type>text/mm-instantsearch-lazy</type></action>
             </block>
 
-            <!-- Loader script -->
             <block type="mm_search/script" name="mm_search.instantsearch.loader" after="mm_search.instantsearch.custom_js_lazy" template="mm/search/script.phtml">
                 <action method="setFile"><file>js/mm_search/instantsearch-loader.js</file></action>
                 <action method="setScriptType"><type>text/javascript</type></action>

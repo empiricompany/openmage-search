@@ -1,7 +1,4 @@
 <?php
-
-
-
 class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
 {
     const XML_PATH_SEARCH_ENGINE_TYPE = 'mm_search/general/engine_type';
@@ -203,5 +200,28 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function getSkinUrl($file)
     {
         return Mage::getDesign()->getSkinUrl($file);
+    }
+
+    /**
+     * Get InstantSearch bundle JS path from Vite manifest
+     *
+     * @return string
+     */
+    public function getInstantSearchBundleJs()
+    {
+        $manifestPath = Mage::getBaseDir('skin') . DS . 'frontend' . DS . 'base' . DS . 'default'
+            . DS . 'js' . DS . 'mm_search' . DS . 'dist' . DS . '.vite' . DS . 'manifest.json';
+        
+        if (!file_exists($manifestPath)) {
+            return 'js/mm_search/dist/instantsearch-bundle.js';
+        }
+        
+        $manifest = json_decode(file_get_contents($manifestPath), true);
+        
+        if (isset($manifest['skin/frontend/base/default/js/mm_search/src/index.js']['file'])) {
+            return 'js/mm_search/dist/' . $manifest['skin/frontend/base/default/js/mm_search/src/index.js']['file'];
+        }
+        
+        return 'js/mm_search/dist/instantsearch-bundle.js';
     }
 }
