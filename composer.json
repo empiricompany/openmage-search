@@ -32,6 +32,7 @@
             ["app/etc/modules/MM_Search.xml", "app/etc/modules/MM_Search.xml"],
             ["app/design/frontend/base/default/layout/mm_search.xml", "app/design/frontend/base/default/layout/mm_search.xml"],
             ["app/design/frontend/base/default/template/mm/search", "app/design/frontend/base/default/template/mm/search"],
+            ["app/design/adminhtml/default/default/layout/mm_search.xml", "app/design/adminhtml/default/default/layout/mm_search.xml"],
             ["app/design/adminhtml/default/default/template/mm/search", "app/design/adminhtml/default/default/template/mm/search"],
             ["skin/frontend/base/default/css/mm_search", "skin/frontend/base/default/css/mm_search"],
             ["skin/frontend/base/default/js/mm_search", "skin/frontend/base/default/js/mm_search"]

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<config>
+    <menu>
+        <catalog>
+            <children>
+                <mm_search_analytics translate="title" module="mm_search">
+                    <title>Advanced Search</title>
+                    <sort_order>100</sort_order>
+                    <children>
+                        <popular_queries translate="title" module="mm_search">
+                            <title>Popular Queries</title>
+                            <action>adminhtml/mm_search_analytics/queries</action>
+                            <sort_order>10</sort_order>
+                        </popular_queries>
+                        <nohits_queries translate="title" module="mm_search">
+                            <title>No Results Queries</title>
+                            <action>adminhtml/mm_search_analytics/nohits</action>
+                            <sort_order>20</sort_order>
+                        </nohits_queries>
+                    </children>
+                </mm_search_analytics>
+            </children>
+        </catalog>
+    </menu>
+    <acl>
+        <resources>
+            <admin>
+                <children>
+                    <catalog>
+                        <children>
+                            <mm_search_analytics translate="title" module="mm_search">
+                                <title>Advanced Search Analytics</title>
+                                <sort_order>100</sort_order>
+                                <children>
+                                    <popular_queries translate="title" module="mm_search">
+                                        <title>Popular Queries</title>
+                                    </popular_queries>
+                                    <nohits_queries translate="title" module="mm_search">
+                                        <title>No Results Queries</title>
+                                    </nohits_queries>
+                                </children>
+                            </mm_search_analytics>
+                        </children>
+                    </catalog>
+                </children>
+            </admin>
+        </resources>
+    </acl>
+</config>

@@ -29,11 +29,6 @@
                     <fulltext>MM_Search_Model_Resource_Fulltext</fulltext>
                 </rewrite>
             </catalogsearch_resource>
-            <!-- <catalogsearch>
-                <rewrite>
-                    <indexer_fulltext>MM_Search_Model_Indexer_Fulltext</indexer_fulltext>
-                </rewrite>
-            </catalogsearch> -->
         </models>
     </global>
     <frontend>
@@ -64,6 +59,17 @@
             </updates>
         </layout>
     </frontend>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <mm_search before="Mage_Adminhtml">MM_Search_Adminhtml</mm_search>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
     <adminhtml>
         <events>
             <catalog_entity_attribute_save_after>
@@ -75,15 +81,13 @@
                 </observers>
             </catalog_entity_attribute_save_after>
         </events>
-        <!-- <routers>
-            <mm_search>
-                <use>admin</use>
-                <args>
-                    <module>MM_Search</module>
-                    <frontName>mm_search</frontName>
-                </args>
-            </mm_search>
-        </routers> -->
+        <layout>
+            <updates>
+                <mm_search>
+                    <file>mm_search.xml</file>
+                </mm_search>
+            </updates>
+        </layout>
         <acl>
             <resources>
                 <admin>
@@ -125,6 +129,10 @@
             <instantsearch>
                 <cache_lifetime>120</cache_lifetime>
             </instantsearch>
+            <analytics>
+                <enabled>0</enabled>
+                <auto_create_rules>1</auto_create_rules>
+            </analytics>
         </mm_search>
     </default>
 </config>

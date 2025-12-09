@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<layout>
+    <!-- Popular Queries Page -->
+    <adminhtml_mm_search_analytics_queries>
+        <reference name="content">
+            <block type="mm_search/adminhtml_analytics_queries" name="analytics.queries">
+                <block type="mm_search/adminhtml_analytics_queries_grid" name="analytics.queries.grid" as="grid"/>
+            </block>
+        </reference>
+    </adminhtml_mm_search_analytics_queries>
+    
+    <!-- Popular Queries Grid AJAX -->
+    <adminhtml_mm_search_analytics_queriesgrid>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="mm_search/adminhtml_analytics_queries_grid" name="analytics.queries.grid"/>
+        </block>
+    </adminhtml_mm_search_analytics_queriesgrid>
+    
+    <!-- No Hits Queries Page -->
+    <adminhtml_mm_search_analytics_nohits>
+        <reference name="content">
+            <block type="mm_search/adminhtml_analytics_nohits" name="analytics.nohits">
+                <block type="mm_search/adminhtml_analytics_nohits_grid" name="analytics.nohits.grid" as="grid"/>
+            </block>
+        </reference>
+    </adminhtml_mm_search_analytics_nohits>
+    
+    <!-- No Hits Queries Grid AJAX -->
+    <adminhtml_mm_search_analytics_nohitsgrid>
+        <block type="core/text_list" name="root" output="toHtml">
+            <block type="mm_search/adminhtml_analytics_nohits_grid" name="analytics.nohits.grid"/>
+        </block>
+    </adminhtml_mm_search_analytics_nohitsgrid>
+</layout>

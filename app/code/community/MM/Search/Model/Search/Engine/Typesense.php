@@ -227,11 +227,219 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
     
     /**
      * Get InstantSearch.js adapter filename
-     * 
+     *
      * @return string
      */
     public static function getInstantSearchAdapterJs()
     {
         return 'typesense-instantsearch-adapter.min.js';
+    }
+    
+    /**
+     * Typesense supports analytics via Analytics Rules
+     *
+     * @return bool
+     */
+    public function supportsAnalytics()
+    {
+        return true;
+    }
+    
+    /**
+     * Get popular search queries from Typesense analytics collection
+     *
+     * Reads from the {collectionName}-product_queries collection
+     * which is populated by Typesense Analytics Rules.
+     *
+     * @param string $collectionName Base collection name
+     * @param int $limit Maximum number of results
+     * @return array Array of ['q' => string, 'count' => int]
+     */
+    public function getPopularQueries($collectionName, $limit = 100)
+    {
+        $analyticsCollection = $collectionName . '-product_queries';
+        return $this->_getAnalyticsDocuments($analyticsCollection, $limit);
+    }
+    
+    /**
+     * Get queries with no results from Typesense analytics collection
+     *
+     * Reads from the {collectionName}-no_hits_queries collection
+     * which is populated by Typesense Analytics Rules.
+     *
+     * @param string $collectionName Base collection name
+     * @param int $limit Maximum number of results
+     * @return array Array of ['q' => string, 'count' => int]
+     */
+    public function getNoHitsQueries($collectionName, $limit = 100)
+    {
+        $analyticsCollection = $collectionName . '-no_hits_queries';
+        return $this->_getAnalyticsDocuments($analyticsCollection, $limit);
+    }
+    
+    /**
+     * Fetch documents from an analytics collection
+     *
+     * @param string $analyticsCollection Collection name
+     * @param int $limit Maximum results
+     * @return array
+     */
+    protected function _getAnalyticsDocuments($analyticsCollection, $limit)
+    {
+        try {
+            if (!$this->collectionExists($analyticsCollection)) {
+                $this->_helper->debug(
+                    sprintf('Analytics collection "%s" does not exist.', $analyticsCollection)
+                );
+                return array();
+            }
+            
+            // Search all documents sorted by count descending
+            $searchParams = array(
+                'q' => '*',
+                'query_by' => 'q',
+                'sort_by' => 'count:desc',
+                'per_page' => $limit
+            );
+            
+            $result = $this->_client->collections[$analyticsCollection]->documents->search($searchParams);
+            
+            $documents = array();
+            if (isset($result['hits']) && is_array($result['hits'])) {
+                foreach ($result['hits'] as $hit) {
+                    if (isset($hit['document'])) {
+                        $documents[] = array(
+                            'q' => isset($hit['document']['q']) ? $hit['document']['q'] : '',
+                            'count' => isset($hit['document']['count']) ? (int)$hit['document']['count'] : 0
+                        );
+                    }
+                }
+            }
+            
+            return $documents;
+            
+        } catch (\Typesense\Exceptions\ObjectNotFound $e) {
+            $this->_helper->debug(
+                sprintf('Analytics collection "%s" not found.', $analyticsCollection)
+            );
+            return array();
+        } catch (Exception $e) {
+            Mage::logException($e);
+            $this->_helper->debug(
+                sprintf('Error fetching analytics from "%s": %s', $analyticsCollection, $e->getMessage())
+            );
+            return array();
+        }
+    }
+    
+    /**
+     * Create analytics rules for tracking search queries
+     *
+     * Creates two rules:
+     * 1. popular_queries - tracks most searched terms
+     * 2. nohits_queries - tracks searches with no results
+     *
+     * @param string $collectionName Base collection name to track
+     * @return bool True if rules were created successfully
+     */
+    public function createAnalyticsRules($collectionName)
+    {
+        $success = true;
+        
+        // Create popular queries rule
+        $popularRuleName = $collectionName . '-product_queries';
+        $popularRuleConfig = array(
+            'type' => 'popular_queries',
+            'params' => array(
+                'source' => array(
+                    'collections' => array($collectionName)
+                ),
+                'destination' => array(
+                    'collection' => $collectionName . '-product_queries'
+                ),
+                'limit' => 1000
+            )
+        );
+        
+        try {
+            $this->_client->analytics->rules()->upsert($popularRuleName, $popularRuleConfig);
+            $this->_helper->debug(
+                sprintf('Created analytics rule "%s" for popular queries.', $popularRuleName)
+            );
+        } catch (Exception $e) {
+            Mage::logException($e);
+            $this->_helper->debug(
+                sprintf('Error creating popular queries rule: %s', $e->getMessage())
+            );
+            $success = false;
+        }
+        
+        // Create no-hits queries rule
+        $noHitsRuleName = $collectionName . '-no_hits_queries';
+        $noHitsRuleConfig = array(
+            'type' => 'nohits_queries',
+            'params' => array(
+                'source' => array(
+                    'collections' => array($collectionName)
+                ),
+                'destination' => array(
+                    'collection' => $collectionName . '-no_hits_queries'
+                ),
+                'limit' => 1000
+            )
+        );
+        
+        try {
+            $this->_client->analytics->rules()->upsert($noHitsRuleName, $noHitsRuleConfig);
+            $this->_helper->debug(
+                sprintf('Created analytics rule "%s" for no-hits queries.', $noHitsRuleName)
+            );
+        } catch (Exception $e) {
+            Mage::logException($e);
+            $this->_helper->debug(
+                sprintf('Error creating no-hits queries rule: %s', $e->getMessage())
+            );
+            $success = false;
+        }
+        
+        return $success;
+    }
+    
+    /**
+     * Check if analytics rules exist for a collection
+     *
+     * @param string $collectionName Base collection name
+     * @return bool True if both analytics rules are configured
+     */
+    public function analyticsRulesExist($collectionName)
+    {
+        try {
+            $rules = $this->_client->analytics->rules()->retrieve();
+            
+            $popularRuleName = $collectionName . '-product_queries';
+            $noHitsRuleName = $collectionName . '-no_hits_queries';
+            
+            $hasPopularRule = false;
+            $hasNoHitsRule = false;
+            
+            if (isset($rules['rules']) && is_array($rules['rules'])) {
+                foreach ($rules['rules'] as $rule) {
+                    if (isset($rule['name'])) {
+                        if ($rule['name'] === $popularRuleName) {
+                            $hasPopularRule = true;
+                        }
+                        if ($rule['name'] === $noHitsRuleName) {
+                            $hasNoHitsRule = true;
+                        }
+                    }
+                }
+            }
+            
+            return $hasPopularRule && $hasNoHitsRule;
+            
+        } catch (Exception $e) {
+            Mage::logException($e);
+            return false;
+        }
     }
 }

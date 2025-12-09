@@ -186,6 +186,51 @@
                         </cache_lifetime>
                     </fields>
                 </instantsearch>
+                <analytics translate="label">
+                    <label>Search Analytics</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>40</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <enabled translate="label">
+                            <label>Enable Analytics</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>
+                            <![CDATA[
+                                Enable tracking of search queries and analytics.<br />
+                                <strong>Note: Only supported for Typesense engine.</strong>
+                            ]]>
+                            </comment>
+                        </enabled>
+                        <auto_create_rules translate="label">
+                            <label>Auto Create Analytics Rules</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <enabled>1</enabled>
+                            </depends>
+                            <comment>
+                            <![CDATA[
+                                Automatically create analytics rules on Typesense when reindexing.<br />
+                                This will create rules to track:<br />
+                                - <strong>Popular Queries</strong>: Most frequently searched terms<br />
+                                - <strong>No Results Queries</strong>: Searches that returned zero results
+                            ]]>
+                            </comment>
+                        </auto_create_rules>
+                    </fields>
+                </analytics>
             </groups>
         </mm_search>
     </sections>

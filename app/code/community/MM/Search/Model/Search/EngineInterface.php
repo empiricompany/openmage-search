@@ -111,11 +111,66 @@ interface MM_Search_Model_Search_EngineInterface
     
     /**
      * Get InstantSearch.js adapter filename
-     * 
+     *
      * Returns the JavaScript adapter file needed for frontend InstantSearch.
      * File should be located in: skin/frontend/base/default/js/mm_search/
-     * 
+     *
      * @return string Example: 'typesense-instantsearch-adapter.min.js'
      */
     public static function getInstantSearchAdapterJs();
+    
+    /**
+     * Check if engine supports analytics
+     *
+     * Not all engines support query analytics.
+     * Typesense: Yes (via Analytics Rules)
+     * Meilisearch: No (only Cloud version has analytics)
+     *
+     * @return bool True if analytics are supported
+     */
+    public function supportsAnalytics();
+    
+    /**
+     * Get popular search queries
+     *
+     * Retrieves the most frequently searched queries.
+     * Returns data from the analytics collection (e.g. {collection}_product_queries).
+     *
+     * @param string $collectionName Base collection name
+     * @param int $limit Maximum number of results (default: 100)
+     * @return array Array of ['q' => string, 'count' => int]
+     */
+    public function getPopularQueries($collectionName, $limit = 100);
+    
+    /**
+     * Get queries with no results
+     *
+     * Retrieves search queries that returned zero results.
+     * Returns data from the no-hits analytics collection (e.g. {collection}_no_hits_queries).
+     *
+     * @param string $collectionName Base collection name
+     * @param int $limit Maximum number of results (default: 100)
+     * @return array Array of ['q' => string, 'count' => int]
+     */
+    public function getNoHitsQueries($collectionName, $limit = 100);
+    
+    /**
+     * Create analytics rules for tracking search queries
+     *
+     * Sets up the necessary rules/configuration to track:
+     * - Popular queries
+     * - Queries with no results
+     *
+     * @param string $collectionName Base collection name to track
+     * @return bool True if rules were created successfully
+     */
+    public function createAnalyticsRules($collectionName);
+    
+    /**
+     * Check if analytics rules exist for a collection
+     *
+     * @param string $collectionName Base collection name
+     * @return bool True if analytics rules are configured
+     */
+    public function analyticsRulesExist($collectionName);
 }

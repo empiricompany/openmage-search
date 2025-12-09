@@ -124,9 +124,9 @@ abstract class MM_Search_Model_Search_Engine_Abstract implements MM_Search_Model
     
     /**
      * Map standard field properties to engine-specific type
-     * 
+     *
      * Helper method for concrete engines to use in schema creation.
-     * 
+     *
      * @param array $props Field properties
      * @param array $typeMap Engine-specific type mapping
      * @return string Engine-specific type string
@@ -154,5 +154,71 @@ abstract class MM_Search_Model_Search_Engine_Abstract implements MM_Search_Model
         }
         
         return $mappedType;
+    }
+    
+    /**
+     * Check if engine supports analytics
+     *
+     * Default: false. Override in concrete engines that support analytics.
+     *
+     * @return bool
+     */
+    public function supportsAnalytics()
+    {
+        return false;
+    }
+    
+    /**
+     * Get popular search queries
+     *
+     * Default: empty array. Override in concrete engines that support analytics.
+     *
+     * @param string $collectionName Base collection name
+     * @param int $limit Maximum number of results
+     * @return array
+     */
+    public function getPopularQueries($collectionName, $limit = 100)
+    {
+        return array();
+    }
+    
+    /**
+     * Get queries with no results
+     *
+     * Default: empty array. Override in concrete engines that support analytics.
+     *
+     * @param string $collectionName Base collection name
+     * @param int $limit Maximum number of results
+     * @return array
+     */
+    public function getNoHitsQueries($collectionName, $limit = 100)
+    {
+        return array();
+    }
+    
+    /**
+     * Create analytics rules for tracking search queries
+     *
+     * Default: false. Override in concrete engines that support analytics.
+     *
+     * @param string $collectionName Base collection name
+     * @return bool
+     */
+    public function createAnalyticsRules($collectionName)
+    {
+        return false;
+    }
+    
+    /**
+     * Check if analytics rules exist for a collection
+     *
+     * Default: false. Override in concrete engines that support analytics.
+     *
+     * @param string $collectionName Base collection name
+     * @return bool
+     */
+    public function analyticsRulesExist($collectionName)
+    {
+        return false;
     }
 }
