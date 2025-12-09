@@ -13,8 +13,6 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_DEBUG = 'mm_search/general/debug';
 
     const XML_PATH_INSTANTSEARCH_CACHE = 'mm_search/instantsearch/cache_lifetime';
-    const XML_PATH_ANALYTICS_ENABLED = 'mm_search/analytics/enabled';
-    const XML_PATH_ANALYTICS_AUTO_CREATE_RULES = 'mm_search/analytics/auto_create_rules';
 
     /**
      * Check if module is enabled
@@ -202,29 +200,6 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function getSkinUrl($file)
     {
         return Mage::getDesign()->getSkinUrl($file);
-    }
-
-    /**
-     * Check if analytics is enabled
-     *
-     * @param int|null $storeId Store ID
-     * @return bool
-     */
-    public function isAnalyticsEnabled($storeId = null)
-    {
-        return Mage::getStoreConfigFlag(self::XML_PATH_ANALYTICS_ENABLED, $storeId);
-    }
-
-    /**
-     * Check if auto create analytics rules is enabled
-     *
-     * @param int|null $storeId Store ID
-     * @return bool
-     */
-    public function isAutoCreateAnalyticsRulesEnabled($storeId = null)
-    {
-        return $this->isAnalyticsEnabled($storeId)
-            && Mage::getStoreConfigFlag(self::XML_PATH_ANALYTICS_AUTO_CREATE_RULES, $storeId);
     }
 
     /**
