@@ -17,4 +17,25 @@
             </block>
         </reference>
     </adminhtml_mm_search_analytics_nohits>
+    
+    <!-- Synonyms List Page -->
+    <adminhtml_mm_search_synonyms_index>
+        <reference name="content">
+            <block type="mm_search/adminhtml_synonyms" name="synonyms">
+                <block type="mm_search/adminhtml_synonyms_grid" name="synonyms.grid" as="grid"/>
+            </block>
+        </reference>
+    </adminhtml_mm_search_synonyms_index>
+    
+    <!-- Synonyms Edit/New Page -->
+    <adminhtml_mm_search_synonyms_edit>
+        <reference name="content">
+            <block type="mm_search/adminhtml_synonyms_edit" name="synonyms.edit"/>
+        </reference>
+    </adminhtml_mm_search_synonyms_edit>
+    
+    <!-- Synonyms New Page (uses same layout as edit) -->
+    <adminhtml_mm_search_synonyms_new>
+        <update handle="adminhtml_mm_search_synonyms_edit"/>
+    </adminhtml_mm_search_synonyms_new>
 </layout>

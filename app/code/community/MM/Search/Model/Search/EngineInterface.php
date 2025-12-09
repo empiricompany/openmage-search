@@ -173,4 +173,61 @@ interface MM_Search_Model_Search_EngineInterface
      * @return bool True if analytics rules are configured
      */
     public function analyticsRulesExist($collectionName);
+    
+    // ==========================================
+    // SYNONYMS API
+    // ==========================================
+    
+    /**
+     * Check if engine supports synonyms management
+     *
+     * @return bool True if synonyms are supported
+     */
+    public function supportsSynonyms();
+    
+    /**
+     * Get all synonyms for a collection
+     *
+     * @param string $collectionName Collection name
+     * @return array Array of synonym objects:
+     *   [
+     *       ['id' => string, 'root' => string|null, 'synonyms' => array],
+     *       ...
+     *   ]
+     */
+    public function getSynonyms($collectionName);
+    
+    /**
+     * Get a single synonym by ID
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Synonym ID
+     * @return array|null Synonym data or null if not found
+     */
+    public function getSynonym($collectionName, $synonymId);
+    
+    /**
+     * Create or update a synonym
+     *
+     * Supports two types:
+     * - Multi-way: ['synonyms' => ['blazer', 'coat', 'jacket']] - all terms equivalent
+     * - One-way: ['root' => 'smartphone', 'synonyms' => ['iphone', 'android']] - root maps to synonyms
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Unique synonym ID
+     * @param array $synonymData Synonym configuration:
+     *   - 'synonyms' (array) Required: List of synonym terms
+     *   - 'root' (string) Optional: Root term for one-way synonyms
+     * @return array Created/updated synonym data
+     */
+    public function upsertSynonym($collectionName, $synonymId, array $synonymData);
+    
+    /**
+     * Delete a synonym
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Synonym ID to delete
+     * @return bool True if deleted successfully
+     */
+    public function deleteSynonym($collectionName, $synonymId);
 }

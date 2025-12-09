@@ -221,4 +221,77 @@ abstract class MM_Search_Model_Search_Engine_Abstract implements MM_Search_Model
     {
         return false;
     }
+    
+    // ==========================================
+    // SYNONYMS API - Default implementations
+    // ==========================================
+    
+    /**
+     * Check if engine supports synonyms management
+     *
+     * Default: false. Override in concrete engines that support synonyms.
+     *
+     * @return bool
+     */
+    public function supportsSynonyms()
+    {
+        return false;
+    }
+    
+    /**
+     * Get all synonyms for a collection
+     *
+     * Default: empty array. Override in concrete engines.
+     *
+     * @param string $collectionName Collection name
+     * @return array
+     */
+    public function getSynonyms($collectionName)
+    {
+        return array();
+    }
+    
+    /**
+     * Get a single synonym by ID
+     *
+     * Default: null. Override in concrete engines.
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Synonym ID
+     * @return array|null
+     */
+    public function getSynonym($collectionName, $synonymId)
+    {
+        return null;
+    }
+    
+    /**
+     * Create or update a synonym
+     *
+     * Default: throws exception. Override in concrete engines.
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Unique synonym ID
+     * @param array $synonymData Synonym configuration
+     * @return array
+     * @throws Exception
+     */
+    public function upsertSynonym($collectionName, $synonymId, array $synonymData)
+    {
+        throw new Exception('Synonyms are not supported by this search engine.');
+    }
+    
+    /**
+     * Delete a synonym
+     *
+     * Default: false. Override in concrete engines.
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Synonym ID to delete
+     * @return bool
+     */
+    public function deleteSynonym($collectionName, $synonymId)
+    {
+        return false;
+    }
 }

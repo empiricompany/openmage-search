@@ -1,60 +1,30 @@
 <?php
 /**
- * Abstract Analytics Container Block
- * 
- * Base class for analytics container blocks to avoid code duplication
+ * Synonyms Container Block
  *
  * @category   MM
  * @package    MM_Search
  * @author     Tony
  */
-abstract class MM_Search_Block_Adminhtml_Analytics_Abstract extends Mage_Adminhtml_Block_Widget_Grid_Container
+class MM_Search_Block_Adminhtml_Synonyms extends Mage_Adminhtml_Block_Widget_Grid_Container
 {
-    /**
-     * @var string Redirect parameter for create rules action
-     */
-    protected $_redirectParam = 'queries';
-    
     /**
      * Constructor
      */
     public function __construct()
     {
+        $this->_blockGroup = 'mm_search';
+        $this->_controller = 'adminhtml_synonyms';
+        $this->_headerText = Mage::helper('mm_search')->__('Search Synonyms');
+        
         parent::__construct();
         
-        // Remove add button - we don't need it for analytics
-        $this->_removeButton('add');
+        // Change add button label
+        $this->_updateButton('add', 'label', Mage::helper('mm_search')->__('Add New Synonym'));
         
-        // Add "Create Rules" button if engine supports analytics
-        $this->_addCreateRulesButton();
-    }
-
-    /**
-     * Add "Create Analytics Rules" button
-     */
-    protected function _addCreateRulesButton()
-    {
+        // Update add button URL with store parameter
         $storeId = $this->getRequest()->getParam('store', 0);
-        
-        try {
-            $helper = Mage::helper('mm_search');
-            $factory = Mage::getSingleton('mm_search/api_factory');
-            $engine = $factory->createEngine($storeId);
-            
-            if ($engine->supportsAnalytics()) {
-                $collectionName = $helper->getCollectionName($storeId);
-                
-                if (!$engine->analyticsRulesExist($collectionName)) {
-                    $this->_addButton('create_rules', array(
-                        'label'   => $helper->__('Create Analytics Rules'),
-                        'onclick' => "setLocation('{$this->getUrl('*/*/createRules', array('store' => $storeId, 'redirect' => $this->_redirectParam))}')",
-                        'class'   => 'add',
-                    ));
-                }
-            }
-        } catch (Exception $e) {
-            Mage::logException($e);
-        }
+        $this->_updateButton('add', 'onclick', "setLocation('{$this->getUrl('*/*/new', array('store' => $storeId))}')");
     }
 
     /**
@@ -69,7 +39,7 @@ abstract class MM_Search_Block_Adminhtml_Analytics_Abstract extends Mage_Adminht
     }
 
     /**
-     * Get store view selector HTML - always shows all store views
+     * Get store view selector HTML
      *
      * @return string
      */

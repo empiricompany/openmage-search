@@ -517,4 +517,178 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
             return false;
         }
     }
+    
+    // ==========================================
+    // SYNONYMS API
+    // ==========================================
+    
+    /**
+     * Check if engine supports synonyms management
+     *
+     * @return bool Typesense supports synonyms
+     */
+    public function supportsSynonyms()
+    {
+        return true;
+    }
+    
+    /**
+     * Get all synonyms for a collection
+     *
+     * @param string $collectionName Collection name
+     * @return array Array of synonym objects
+     */
+    public function getSynonyms($collectionName)
+    {
+        try {
+            if (!$this->collectionExists($collectionName)) {
+                $this->_helper->debug(
+                    sprintf('Collection "%s" does not exist, cannot get synonyms.', $collectionName)
+                );
+                return array();
+            }
+            
+            $response = $this->_client->collections[$collectionName]->synonyms->retrieve();
+            
+            $synonyms = array();
+            if (isset($response['synonyms']) && is_array($response['synonyms'])) {
+                foreach ($response['synonyms'] as $synonym) {
+                    $synonyms[] = array(
+                        'id' => isset($synonym['id']) ? $synonym['id'] : '',
+                        'root' => isset($synonym['root']) ? $synonym['root'] : '',
+                        'synonyms' => isset($synonym['synonyms']) ? $synonym['synonyms'] : array()
+                    );
+                }
+            }
+            
+            return $synonyms;
+            
+        } catch (Exception $e) {
+            Mage::logException($e);
+            $this->_helper->debug(
+                sprintf('Error fetching synonyms from "%s": %s', $collectionName, $e->getMessage())
+            );
+            return array();
+        }
+    }
+    
+    /**
+     * Get a single synonym by ID
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Synonym ID
+     * @return array|null Synonym data or null if not found
+     */
+    public function getSynonym($collectionName, $synonymId)
+    {
+        try {
+            if (!$this->collectionExists($collectionName)) {
+                return null;
+            }
+            
+            $synonym = $this->_client->collections[$collectionName]->synonyms[$synonymId]->retrieve();
+            
+            return array(
+                'id' => isset($synonym['id']) ? $synonym['id'] : '',
+                'root' => isset($synonym['root']) ? $synonym['root'] : '',
+                'synonyms' => isset($synonym['synonyms']) ? $synonym['synonyms'] : array()
+            );
+            
+        } catch (\Typesense\Exceptions\ObjectNotFound $e) {
+            return null;
+        } catch (Exception $e) {
+            Mage::logException($e);
+            return null;
+        }
+    }
+    
+    /**
+     * Create or update a synonym
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Unique synonym ID
+     * @param array $synonymData Synonym configuration
+     * @return array Created/updated synonym data
+     * @throws Exception
+     */
+    public function upsertSynonym($collectionName, $synonymId, array $synonymData)
+    {
+        if (!$this->collectionExists($collectionName)) {
+            throw new Exception(
+                sprintf('Collection "%s" does not exist.', $collectionName)
+            );
+        }
+        
+        // Validate synonym data
+        if (!isset($synonymData['synonyms']) || !is_array($synonymData['synonyms']) || empty($synonymData['synonyms'])) {
+            throw new Exception('Synonyms array is required and must not be empty.');
+        }
+        
+        // Build the synonym object
+        $synonymObj = array(
+            'synonyms' => $synonymData['synonyms']
+        );
+        
+        // Add root for one-way synonyms
+        if (!empty($synonymData['root'])) {
+            $synonymObj['root'] = $synonymData['root'];
+        }
+        
+        try {
+            $result = $this->_client->collections[$collectionName]->synonyms->upsert($synonymId, $synonymObj);
+            
+            $this->_helper->debug(
+                sprintf('Upserted synonym "%s" in collection "%s".', $synonymId, $collectionName)
+            );
+            
+            return array(
+                'id' => isset($result['id']) ? $result['id'] : $synonymId,
+                'root' => isset($result['root']) ? $result['root'] : '',
+                'synonyms' => isset($result['synonyms']) ? $result['synonyms'] : $synonymData['synonyms']
+            );
+            
+        } catch (Exception $e) {
+            Mage::logException($e);
+            $this->_helper->debug(
+                sprintf('Error upserting synonym "%s": %s', $synonymId, $e->getMessage())
+            );
+            throw $e;
+        }
+    }
+    
+    /**
+     * Delete a synonym
+     *
+     * @param string $collectionName Collection name
+     * @param string $synonymId Synonym ID to delete
+     * @return bool True if deleted successfully
+     */
+    public function deleteSynonym($collectionName, $synonymId)
+    {
+        try {
+            if (!$this->collectionExists($collectionName)) {
+                return false;
+            }
+            
+            $this->_client->collections[$collectionName]->synonyms[$synonymId]->delete();
+            
+            $this->_helper->debug(
+                sprintf('Deleted synonym "%s" from collection "%s".', $synonymId, $collectionName)
+            );
+            
+            return true;
+            
+        } catch (\Typesense\Exceptions\ObjectNotFound $e) {
+            $this->_helper->debug(
+                sprintf('Synonym "%s" not found in collection "%s".', $synonymId, $collectionName)
+            );
+            return false;
+        } catch (Exception $e) {
+            Mage::logException($e);
+            $this->_helper->debug(
+                sprintf('Error deleting synonym "%s": %s', $synonymId, $e->getMessage())
+            );
+            return false;
+        }
+    }
 }
