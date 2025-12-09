@@ -33,13 +33,6 @@ export class HitTemplate {
     }
 
     /**
-     * Override in custom templates - default returns null
-     */
-    renderGenereBadge(hit, html) {
-        return null;
-    }
-
-    /**
      * Override in custom templates
      */
     renderPrice(hit, html) {
@@ -68,13 +61,6 @@ export class HitTemplate {
     }
 
     /**
-     * Override in custom templates - default returns null
-     */
-    renderSizes(hit, html) {
-        return null;
-    }
-
-    /**
      * Main render method - can be overridden for complete layout control
      */
     render(hit, { html, components }) {
@@ -84,9 +70,7 @@ export class HitTemplate {
 
         const newBadge = this.renderNewBadge(hit, html);
         const discountBadge = this.renderDiscountBadge(hit, html);
-        const genereBadge = this.renderGenereBadge(hit, html);
         const priceHtml = this.renderPrice(hit, html);
-        const sizesHtml = this.renderSizes(hit, html);
 
         return html`
             <div class="wrap-media">
@@ -95,7 +79,7 @@ export class HitTemplate {
                         onerror=${handleImageError} />
                 </a>
                 <div class="product-badges">
-                    ${newBadge || ''} ${discountBadge || ''} ${genereBadge || ''}
+                    ${newBadge || ''} ${discountBadge || ''}
                 </div>
             </div>
             <div class="wrap-flex-sb">
@@ -105,7 +89,6 @@ export class HitTemplate {
                             ${components.Highlight({ hit, attribute: 'name' })}
                         </a>
                     </h2>
-                    ${sizesHtml || ''}
                 </div>
                 <div class="actions">
                     <div class="price-box">
