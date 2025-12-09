@@ -105,9 +105,40 @@ export class InstantSearchApp {
             showMoreLimit: 100,
             searchable: true,
             searchablePlaceholder: 'Cerca categorie...',
+            cssClasses: {
+                root: '',
+                list: '',
+                item: '',
+                showMore: 'btn btn-xs',
+                disabledShowMore: 'btn btn-xs disabled',
+                searchableInput: 'input-text'
+            },
             templates: {
                 showMoreText(data, { html }) {
-                    return html`<span class="btn btn-xs">${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
+                    return html`<span>${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
+                },
+            }
+        });
+
+        // Default configuration for dynamic facets (can be overridden via facet:attributeName)
+        this.widgets.register('_facetDefaults', {
+            operator: 'or',
+            limit: 10,
+            showMore: true,
+            showMoreLimit: 100,
+            searchable: true,
+            searchablePlaceholder: 'Cerca...',
+            cssClasses: {
+                root: '',
+                list: '',
+                item: '',
+                showMore: 'btn btn-xs',
+                disabledShowMore: 'btn btn-xs disabled',
+                searchableInput: 'input-text'
+            },
+            templates: {
+                showMoreText(data, { html }) {
+                    return html`<span>${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
                 },
             }
         });
@@ -166,9 +197,14 @@ export class InstantSearchApp {
         const facets = this._config.facetBy || [];
         const swatches = this._config.swatches || {};
 
+        // Get default facet configuration from registry
+        const facetDefaults = this.widgets.getConfig('_facetDefaults') || {};
+
         facets.forEach(facet => {
             if (facet === 'price') {
-                widgets.push(rangeSlider({
+                // Price slider - check for override first
+                const priceOverride = this.widgets.getConfig('facet:price') || {};
+                const priceConfig = Utils.deepMerge({
                     container: `#typesense-${facet}`,
                     attribute: facet,
                     pips: false,
@@ -178,29 +214,27 @@ export class InstantSearchApp {
                     cssClasses: {
                         root: 'price-range-slider',
                     }
-                }));
+                }, priceOverride);
+                
+                widgets.push(rangeSlider(priceConfig));
             } else {
                 const swatchConfig = swatches[facet];
                 
-                const widgetConfig = {
-                    container: `#typesense-${facet}`,
-                    attribute: facet,
-                    operator: 'or',
-                    limit: 10,
-                    showMore: true,
-                    showMoreLimit: 100,
-                    searchable: true,
-                    searchablePlaceholder: 'Cerca...',
-                    templates: {
-                        showMoreText(data, { html }) {
-                            return html`<span class="btn btn-xs">${data.isShowingMore ? 'Mostra meno' : 'Mostra tutti'}</span>`;
-                        },
-                    }
-                };
+                // Get facet-specific override (e.g., facet:color)
+                const facetOverride = this.widgets.getConfig(`facet:${facet}`) || {};
+                
+                // Start with defaults, then merge override
+                let widgetConfig = Utils.deepMerge(facetDefaults, facetOverride);
+                
+                // Set container and attribute (always override these)
+                widgetConfig.container = `#typesense-${facet}`;
+                widgetConfig.attribute = facet;
 
                 // Apply swatch configuration if available
                 if (swatchConfig && swatchConfig.options) {
                     widgetConfig.searchable = false;
+                    // Create a new templates object to avoid mutating defaults
+                    widgetConfig.templates = { ...(widgetConfig.templates || {}) };
                     widgetConfig.templates.item = (item, { html }) => {
                         const labelText = item.label;
                         const imageUrl = swatchConfig.options[labelText];
@@ -237,11 +271,12 @@ export class InstantSearchApp {
                             `;
                         }
                     };
-                    widgetConfig.cssClasses = {
+                    // Merge swatch cssClasses with existing ones
+                    widgetConfig.cssClasses = Utils.deepMerge(widgetConfig.cssClasses || {}, {
                         list: 'configurable-swatch-list',
                         item: '',
                         label: ''
-                    };
+                    });
                 }
 
                 widgets.push(refinementList(widgetConfig));

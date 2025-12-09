@@ -23,7 +23,9 @@
         // const helpers = window.MMSearch.HitHelpers;
         
         /*
-        // --- Hit Template Customization ---
+        // ==========================================
+        // Hit Template Customization
+        // ==========================================
         app.templates.extend('hit', {
             placeholderUrl: '/skin/frontend/mytheme/images/placeholder.jpg',
 
@@ -34,15 +36,90 @@
             }
         });
 
-        // --- Widget Configuration ---
+        // ==========================================
+        // Widget Configuration
+        // ==========================================
+        
+        // --- Stats Widget ---
         app.widgets.configure('stats', {
             cssClasses: { text: 'my-custom-class' }
         });
 
-        // --- Remove Widget ---
+        // --- Category Names Widget ---
+        // Customize cssClasses for the "Show More" button
+        app.widgets.configure('categoryNames', {
+            operator: 'and',  // Change from 'or' to 'and'
+            cssClasses: {
+                showMore: 'btn btn-primary',
+                disabledShowMore: 'btn btn-primary disabled',
+                searchableInput: 'form-control'
+            },
+            templates: {
+                showMoreText(data, { html }) {
+                    return html`<span>${data.isShowingMore ? 'Show Less' : 'Show All'}</span>`;
+                }
+            }
+        });
+
+        // --- Infinite Hits Widget ---
+        app.widgets.configure('infiniteHits', {
+            cssClasses: {
+                list: 'products-grid my-custom-grid',
+                item: 'item',
+                loadMore: 'btn btn-lg btn-primary',
+                disabledLoadMore: 'btn btn-lg btn-primary disabled'
+            }
+        });
+
+        // ==========================================
+        // Dynamic Facets Configuration (NEW!)
+        // ==========================================
+        
+        // --- Default configuration for ALL dynamic facets ---
+        // This affects all facets defined in config.facetBy
+        app.widgets.configure('_facetDefaults', {
+            limit: 8,
+            showMoreLimit: 50,
+            cssClasses: {
+                showMore: 'btn btn-sm btn-outline',
+                disabledShowMore: 'btn btn-sm btn-outline disabled',
+                searchableInput: 'form-control input-sm'
+            },
+            templates: {
+                showMoreText(data, { html }) {
+                    return html`<span>${data.isShowingMore ? 'Less' : 'More'}</span>`;
+                }
+            }
+        });
+
+        // --- Override for a specific facet (e.g., 'color') ---
+        app.widgets.configure('facet:color', {
+            searchable: false,  // Disable search for color facet
+            limit: 20,
+            cssClasses: {
+                list: 'color-facet-list',
+                showMore: 'btn-link text-primary'
+            }
+        });
+
+        // --- Override for price range slider ---
+        app.widgets.configure('facet:price', {
+            cssClasses: {
+                root: 'my-custom-price-slider'
+            },
+            tooltips: {
+                format: (value) => '$' + Math.round(value).toLocaleString()
+            }
+        });
+
+        // ==========================================
+        // Remove/Disable Widgets
+        // ==========================================
         app.widgets.remove('categoryNames');
 
-        // --- Disable Swatches ---
+        // ==========================================
+        // Swatch Configuration
+        // ==========================================
         // To disable swatches for all facets, clear the swatches config:
         // config.swatches = {};
         //
