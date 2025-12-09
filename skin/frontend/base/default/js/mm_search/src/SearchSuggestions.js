@@ -277,7 +277,7 @@ export class SearchSuggestions {
                     text: hit.document.q,
                     count: hit.document.count
                 }))
-                .filter(s => s.text && s.text.trim().length >= 2)
+                .filter(s => s.text && s.text.trim().length >= 4)
                 .slice(0, this._maxSuggestions);
         } catch (error) {
             console.error('SearchSuggestions: error fetching popular', error);
