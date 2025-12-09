@@ -12,6 +12,11 @@
 class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Engine_Abstract
 {
     /**
+     * Maximum number of analytics queries to store and retrieve
+     */
+    const ANALYTICS_LIMIT = 100;
+    
+    /**
      * Initialize Typesense client with store configuration
      *
      * @return void
@@ -295,11 +300,13 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
             }
             
             // Search all documents sorted by count descending
+            // Use min of limit and analytics limit constant
+            $perPage = min($limit, self::ANALYTICS_LIMIT);
             $searchParams = array(
                 'q' => '*',
                 'query_by' => 'q',
-                'sort_by' => 'count:desc',
-                'per_page' => $limit
+                'per_page' => $perPage,
+                'sort_by' => 'count:desc'
             );
             
             $result = $this->_client->collections[$analyticsCollection]->documents->search($searchParams);
@@ -308,8 +315,15 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
             if (isset($result['hits']) && is_array($result['hits'])) {
                 foreach ($result['hits'] as $hit) {
                     if (isset($hit['document'])) {
+                        $q = isset($hit['document']['q']) ? trim($hit['document']['q']) : '';
+                        
+                        // Skip empty queries and queries with less than 4 characters
+                        if (empty($q) || mb_strlen($q) < 4) {
+                            continue;
+                        }
+                        
                         $documents[] = array(
-                            'q' => isset($hit['document']['q']) ? $hit['document']['q'] : '',
+                            'q' => $q,
                             'count' => isset($hit['document']['count']) ? (int)$hit['document']['count'] : 0
                         );
                     }
@@ -333,6 +347,54 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
     }
     
     /**
+     * Create an analytics collection with the required schema
+     *
+     * @param string $collectionName Name of the analytics collection
+     * @return bool True if collection was created successfully
+     */
+    protected function _createAnalyticsCollection($collectionName)
+    {
+        // Schema for analytics collections
+        $schema = array(
+            'name' => $collectionName,
+            'fields' => array(
+                array(
+                    'name' => 'q',
+                    'type' => 'string'
+                ),
+                array(
+                    'name' => 'count',
+                    'type' => 'int32'
+                )
+            )
+        );
+        
+        try {
+            // Check if collection already exists
+            $this->_client->collections[$collectionName]->retrieve();
+            $this->_helper->debug(
+                sprintf('Analytics collection "%s" already exists.', $collectionName)
+            );
+            return true;
+        } catch (Exception $e) {
+            // Collection doesn't exist, create it
+            try {
+                $this->_client->collections->create($schema);
+                $this->_helper->debug(
+                    sprintf('Created analytics collection "%s".', $collectionName)
+                );
+                return true;
+            } catch (Exception $createException) {
+                Mage::logException($createException);
+                $this->_helper->debug(
+                    sprintf('Error creating analytics collection "%s": %s', $collectionName, $createException->getMessage())
+                );
+                return false;
+            }
+        }
+    }
+    
+    /**
      * Create analytics rules for tracking search queries
      *
      * Creates two rules:
@@ -346,8 +408,21 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
     {
         $success = true;
         
+        // Define collection names
+        $popularCollectionName = $collectionName . '-product_queries';
+        $noHitsCollectionName = $collectionName . '-no_hits_queries';
+        
+        // Create analytics collections first (required before creating rules)
+        if (!$this->_createAnalyticsCollection($popularCollectionName)) {
+            $success = false;
+        }
+        
+        if (!$this->_createAnalyticsCollection($noHitsCollectionName)) {
+            $success = false;
+        }
+        
         // Create popular queries rule
-        $popularRuleName = $collectionName . '-product_queries';
+        $popularRuleName = $popularCollectionName;
         $popularRuleConfig = array(
             'type' => 'popular_queries',
             'params' => array(
@@ -355,9 +430,9 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
                     'collections' => array($collectionName)
                 ),
                 'destination' => array(
-                    'collection' => $collectionName . '-product_queries'
+                    'collection' => $popularCollectionName
                 ),
-                'limit' => 1000
+                'limit' => self::ANALYTICS_LIMIT
             )
         );
         
@@ -375,7 +450,7 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
         }
         
         // Create no-hits queries rule
-        $noHitsRuleName = $collectionName . '-no_hits_queries';
+        $noHitsRuleName = $noHitsCollectionName;
         $noHitsRuleConfig = array(
             'type' => 'nohits_queries',
             'params' => array(
@@ -383,9 +458,9 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
                     'collections' => array($collectionName)
                 ),
                 'destination' => array(
-                    'collection' => $collectionName . '-no_hits_queries'
+                    'collection' => $noHitsCollectionName
                 ),
-                'limit' => 1000
+                'limit' => self::ANALYTICS_LIMIT
             )
         );
         

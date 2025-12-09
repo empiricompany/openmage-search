@@ -20,14 +20,35 @@ class MM_Search_Adminhtml_Mm_Search_AnalyticsController extends Mage_Adminhtml_C
     protected function _isAllowed()
     {
         $action = strtolower($this->getRequest()->getActionName());
+        $session = Mage::getSingleton('admin/session');
+        
         switch ($action) {
             case 'queries':
-                return Mage::getSingleton('admin/session')->isAllowed('catalog/mm_search_analytics/popular_queries');
+                return $session->isAllowed('catalog/mm_search_analytics/popular_queries');
             case 'nohits':
-                return Mage::getSingleton('admin/session')->isAllowed('catalog/mm_search_analytics/nohits_queries');
+                return $session->isAllowed('catalog/mm_search_analytics/nohits_queries');
             default:
-                return Mage::getSingleton('admin/session')->isAllowed('catalog/mm_search_analytics');
+                return $session->isAllowed('catalog/mm_search_analytics');
         }
+    }
+
+    /**
+     * Initialize action - set breadcrumbs and active menu
+     *
+     * @param string $pageTitle Page title for breadcrumbs
+     * @param string $activeMenu Active menu item path
+     * @return MM_Search_Adminhtml_Mm_Search_AnalyticsController
+     */
+    protected function _initAction($pageTitle, $activeMenu)
+    {
+        $this->_title($this->__('Catalog'))
+             ->_title($this->__('Advanced Search'))
+             ->_title($this->__($pageTitle));
+        
+        $this->loadLayout();
+        $this->_setActiveMenu($activeMenu);
+        
+        return $this;
     }
 
     /**
@@ -35,18 +56,7 @@ class MM_Search_Adminhtml_Mm_Search_AnalyticsController extends Mage_Adminhtml_C
      */
     public function queriesAction()
     {
-        $this->_title($this->__('Catalog'))
-             ->_title($this->__('Advanced Search'))
-             ->_title($this->__('Popular Queries'));
-
-        $this->loadLayout();
-        $this->_setActiveMenu('catalog/mm_search_analytics/popular_queries');
-        
-        // Add store switcher
-        $this->_addContent(
-            $this->getLayout()->createBlock('mm_search/adminhtml_analytics_queries')
-        );
-        
+        $this->_initAction('Popular Queries', 'catalog/mm_search_analytics/popular_queries');
         $this->renderLayout();
     }
 
@@ -55,40 +65,8 @@ class MM_Search_Adminhtml_Mm_Search_AnalyticsController extends Mage_Adminhtml_C
      */
     public function nohitsAction()
     {
-        $this->_title($this->__('Catalog'))
-             ->_title($this->__('Advanced Search'))
-             ->_title($this->__('No Results Queries'));
-
-        $this->loadLayout();
-        $this->_setActiveMenu('catalog/mm_search_analytics/nohits_queries');
-        
-        $this->_addContent(
-            $this->getLayout()->createBlock('mm_search/adminhtml_analytics_nohits')
-        );
-        
+        $this->_initAction('No Results Queries', 'catalog/mm_search_analytics/nohits_queries');
         $this->renderLayout();
-    }
-
-    /**
-     * AJAX grid action for popular queries
-     */
-    public function queriesGridAction()
-    {
-        $this->loadLayout();
-        $this->getResponse()->setBody(
-            $this->getLayout()->createBlock('mm_search/adminhtml_analytics_queries_grid')->toHtml()
-        );
-    }
-
-    /**
-     * AJAX grid action for no hits queries
-     */
-    public function nohitsGridAction()
-    {
-        $this->loadLayout();
-        $this->getResponse()->setBody(
-            $this->getLayout()->createBlock('mm_search/adminhtml_analytics_nohits_grid')->toHtml()
-        );
     }
 
     /**
@@ -97,6 +75,12 @@ class MM_Search_Adminhtml_Mm_Search_AnalyticsController extends Mage_Adminhtml_C
     public function createRulesAction()
     {
         $storeId = $this->getRequest()->getParam('store', 0);
+        $redirectTo = $this->getRequest()->getParam('redirect', 'queries');
+        
+        // Validate redirect parameter
+        if (!in_array($redirectTo, array('queries', 'nohits'))) {
+            $redirectTo = 'queries';
+        }
         
         try {
             $helper = Mage::helper('mm_search');
@@ -106,8 +90,8 @@ class MM_Search_Adminhtml_Mm_Search_AnalyticsController extends Mage_Adminhtml_C
                 throw new Exception($this->__('Collection name is not configured for this store.'));
             }
             
-            $api = Mage::getModel('mm_search/api', $storeId);
-            $engine = $api->getEngine();
+            $factory = Mage::getSingleton('mm_search/api_factory');
+            $engine = $factory->createEngine($storeId);
             
             if (!$engine->supportsAnalytics()) {
                 throw new Exception($this->__('Current search engine does not support analytics.'));
@@ -130,6 +114,6 @@ class MM_Search_Adminhtml_Mm_Search_AnalyticsController extends Mage_Adminhtml_C
             Mage::logException($e);
         }
         
-        $this->_redirect('*/*/queries', array('store' => $storeId));
+        $this->_redirect('*/*/' . $redirectTo, array('store' => $storeId));
     }
 }
