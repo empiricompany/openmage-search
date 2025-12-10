@@ -71,6 +71,15 @@
         </routers>
     </admin>
     <adminhtml>
+        <translate>
+            <modules>
+                <MM_Search>
+                    <files>
+                        <default>MM_Search.csv</default>
+                    </files>
+                </MM_Search>
+            </modules>
+        </translate>
         <events>
             <catalog_entity_attribute_save_after>
                 <observers>
