@@ -131,11 +131,60 @@ class MM_Search_Model_Api
             
             // Drop and recreate schema if requested
             if ($dropIndex) {
+                // Backup synonyms before dropping the collection
+                $synonymsBackup = array();
+                if ($engine->supportsSynonyms()) {
+                    try {
+                        $synonymsBackup = $engine->getSynonyms($collectionName);
+                        if (!empty($synonymsBackup)) {
+                            $this->_helper->debug(
+                                sprintf('Backed up %d synonyms before dropping collection "%s".', count($synonymsBackup), $collectionName)
+                            );
+                        }
+                    } catch (Exception $e) {
+                        $this->_helper->debug(
+                            sprintf('Could not backup synonyms: %s', $e->getMessage())
+                        );
+                    }
+                }
+                
                 $engine->dropCollection($collectionName);
                 
                 $schemaHelper = Mage::helper('mm_search/schema');
                 $fields = $schemaHelper->getAllSchemaFields();
                 $engine->createOrUpdateSchema($collectionName, $fields);
+                
+                // Restore synonyms after recreating the collection
+                if (!empty($synonymsBackup)) {
+                    $restoredCount = 0;
+                    foreach ($synonymsBackup as $synonym) {
+                        try {
+                            $synonymData = array(
+                                'synonyms' => isset($synonym['synonyms']) ? $synonym['synonyms'] : array()
+                            );
+                            if (!empty($synonym['root'])) {
+                                $synonymData['root'] = $synonym['root'];
+                            }
+                            $engine->upsertSynonym($collectionName, $synonym['id'], $synonymData);
+                            $restoredCount++;
+                        } catch (Exception $e) {
+                            $this->_helper->debug(
+                                sprintf('Could not restore synonym "%s": %s', $synonym['id'], $e->getMessage())
+                            );
+                        }
+                    }
+                    if ($restoredCount > 0) {
+                        $this->_helper->debug(
+                            sprintf('Restored %d synonyms after recreating collection "%s".', $restoredCount, $collectionName)
+                        );
+                        Mage::getSingleton('adminhtml/session')->addSuccess(
+                            Mage::helper('mm_search')->__(
+                                'Restored %d synonyms after reindexing.',
+                                $restoredCount
+                            )
+                        );
+                    }
+                }
             }
             
             // Get product data generator from indexer
