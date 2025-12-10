@@ -13,6 +13,7 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_DEBUG = 'mm_search/general/debug';
 
     const XML_PATH_INSTANTSEARCH_CACHE = 'mm_search/instantsearch/cache_lifetime';
+    const XML_PATH_INSTANTSEARCH_EXHAUSTIVE_SEARCH = 'mm_search/instantsearch/exhaustive_search';
 
     /**
      * Check if module is enabled
@@ -162,6 +163,17 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function getCacheLifetime($storeId = null)
     {
         return (int) Mage::getStoreConfig(self::XML_PATH_INSTANTSEARCH_CACHE, $storeId);
+    }
+
+    /**
+     * Check if exhaustive search is enabled
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isExhaustiveSearchEnabled($storeId = null)
+    {
+        return Mage::getStoreConfigFlag(self::XML_PATH_INSTANTSEARCH_EXHAUSTIVE_SEARCH, $storeId);
     }
 
     /**

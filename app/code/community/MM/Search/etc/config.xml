@@ -128,11 +128,8 @@
             </connection>
             <instantsearch>
                 <cache_lifetime>120</cache_lifetime>
+                <exhaustive_search>0</exhaustive_search>
             </instantsearch>
-            <analytics>
-                <enabled>0</enabled>
-                <auto_create_rules>1</auto_create_rules>
-            </analytics>
         </mm_search>
     </default>
 </config>

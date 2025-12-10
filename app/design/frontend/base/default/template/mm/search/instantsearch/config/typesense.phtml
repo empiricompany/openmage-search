@@ -18,7 +18,7 @@
             per_page: 96,
             facet_by: ['category_names', ...window.instantSearchConfig.facetBy].join(','),
             stopwords: "stopwords",
-            exhaustive_search: true,
+            exhaustive_search: window.instantSearchConfig.exhaustiveSearch,
             drop_tokens_mode: "left_to_right",
         }
     });
