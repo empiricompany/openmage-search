@@ -73,7 +73,7 @@ abstract class MM_Search_Model_Search_Engine_Abstract implements MM_Search_Model
      * @param int $batchSize Number of documents per batch
      * @return array Stats ['count' => int, 'errors' => array]
      */
-    public function bulkIndex($collectionName, $documents, $batchSize = 100)
+    public function bulkIndex($collectionName, $documents, $batchSize = 300)
     {
         $batch = array();
         $count = 0;

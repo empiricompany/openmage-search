@@ -60,7 +60,7 @@ interface MM_Search_Model_Search_EngineInterface
      * @return array Stats: ['count' => int, 'errors' => array]
      * @throws Exception If bulk indexing fails
      */
-    public function bulkIndex($collectionName, $documents, $batchSize = 100);
+    public function bulkIndex($collectionName, $documents, $batchSize = 300);
     
     /**
      * Delete a single document from the index
