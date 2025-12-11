@@ -2,6 +2,75 @@
 class MM_Search_Block_Instantsearch extends Mage_Page_Block_Html_Header
 {
     /**
+     * Cache lifetime in seconds (24 hours)
+     */
+    const CACHE_LIFETIME = 86400;
+    
+    /**
+     * Get cache key info for block caching
+     *
+     * Includes all configuration values that affect the block output,
+     * so cache automatically invalidates when configuration changes.
+     *
+     * @return array
+     */
+    public function getCacheKeyInfo()
+    {
+        /** @var MM_Search_Helper_Data $helper */
+        $helper = Mage::helper('mm_search');
+        
+        // Build hash of all configuration values that affect output
+        $configHash = md5(serialize(array(
+            'api_key' => $helper->getSearchOnlyApiKey(),
+            'host' => $helper->getHost(),
+            'port' => $helper->getPort(),
+            'protocol' => $helper->getProtocol(),
+            'collection' => $helper->getCollectionName(),
+            'proxy_enabled' => $helper->isProxyEnabled(),
+            'cache_lifetime' => $helper->getCacheLifetime(),
+            'exhaustive_search' => $helper->isExhaustiveSearchEnabled(),
+        )));
+        
+        // Hash of facet fields (changes when attributes become filterable)
+        $facetHash = md5(serialize($this->getFacetFields()));
+        
+        return array(
+            'MM_SEARCH_INSTANTSEARCH',
+            Mage::app()->getStore()->getId(),
+            Mage::getDesign()->getPackageName(),
+            Mage::getDesign()->getTheme('template'),
+            $this->getTemplate(),
+            $configHash,
+            $facetHash,
+        );
+    }
+    
+    /**
+     * Get cache lifetime
+     *
+     * @return int
+     */
+    public function getCacheLifetime()
+    {
+        return self::CACHE_LIFETIME;
+    }
+    
+    /**
+     * Get cache tags for automatic invalidation
+     *
+     * @return array
+     */
+    public function getCacheTags()
+    {
+        return array(
+            Mage_Core_Block_Abstract::CACHE_GROUP,
+            Mage_Core_Model_Config::CACHE_TAG,           // Invalidate on config change
+            Mage_Eav_Model_Entity_Attribute::CACHE_TAG,  // Invalidate on attribute change
+            'MM_SEARCH',
+        );
+    }
+
+    /**
      * Get proxy path url
      * @return string
      */

@@ -2,6 +2,52 @@
 class MM_Search_Block_Script extends Mage_Core_Block_Template
 {
     /**
+     * Cache lifetime in seconds (1 day)
+     * Note: Cache must be cleared manually when JS files change
+     */
+    const CACHE_LIFETIME = 86400;
+    
+    /**
+     * Get cache key info for block caching
+     *
+     * @return array
+     */
+    public function getCacheKeyInfo()
+    {
+        return array(
+            'MM_SEARCH_SCRIPT',
+            Mage::app()->getStore()->getId(),
+            Mage::getDesign()->getPackageName(),
+            Mage::getDesign()->getTheme('skin'),
+            $this->getFile(),
+            $this->getScriptType(),
+        );
+    }
+    
+    /**
+     * Get cache lifetime
+     *
+     * @return int
+     */
+    public function getCacheLifetime()
+    {
+        return self::CACHE_LIFETIME;
+    }
+    
+    /**
+     * Get cache tags
+     *
+     * @return array
+     */
+    public function getCacheTags()
+    {
+        return array(
+            Mage_Core_Block_Abstract::CACHE_GROUP,
+            'MM_SEARCH',
+        );
+    }
+
+    /**
      * Get the full URL to the script file
      *
      * @return string
