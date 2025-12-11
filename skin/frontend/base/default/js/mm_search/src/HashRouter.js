@@ -21,6 +21,8 @@ export class HashRouter {
         this._listeners = [];
         this._isDisposed = false;
         this._lastState = null;
+        this._initialState = null;
+        this._writeCount = 0;
         
         // Bind methods
         this._onHashChange = this._onHashChange.bind(this);
@@ -196,8 +198,10 @@ export class HashRouter {
         // Normalize array values
         Object.keys(parsed).forEach(key => {
             // Ensure arrays are always arrays (qs sometimes returns single value as string)
-            if (key !== 'q' && key !== 'page' && key !== 'sort' && 
-                !key.endsWith('_min') && !key.endsWith('_max')) {
+            // EXCEPT for known single-value keys: q, page, sort, _min/_max, and toggle values ('true'/'false')
+            if (key !== 'q' && key !== 'page' && key !== 'sort' &&
+                !key.endsWith('_min') && !key.endsWith('_max') &&
+                parsed[key] !== 'true' && parsed[key] !== 'false') {
                 if (!Array.isArray(parsed[key]) && parsed[key] !== undefined) {
                     parsed[key] = [parsed[key]];
                 }
