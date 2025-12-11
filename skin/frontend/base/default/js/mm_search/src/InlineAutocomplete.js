@@ -11,8 +11,8 @@ export class InlineAutocomplete {
         this._wrapper = null;
         this._currentSuggestion = '';
         this._debounceTimer = null;
-        this._debounceMs = 100;
-        this._minChars = 2;
+        this._debounceMs = 200;
+        this._minChars = 3;
     }
 
     /**

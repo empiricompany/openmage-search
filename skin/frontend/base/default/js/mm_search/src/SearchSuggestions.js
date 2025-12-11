@@ -16,8 +16,8 @@ export class SearchSuggestions {
         this._onSelect = null;
         
         this._debounceTimer = null;
-        this._debounceMs = 150;
-        this._minChars = 2;
+        this._debounceMs = 200;
+        this._minChars = 3;
         this._currentQuery = '';
         this._isVisible = false;
         this._highlightedIndex = -1;
