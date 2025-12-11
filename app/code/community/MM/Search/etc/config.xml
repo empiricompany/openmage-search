@@ -135,6 +135,7 @@
             <general>
                 <enabled>0</enabled>
                 <engine_type>typesense</engine_type>
+                <redirect_catalogsearch>1</redirect_catalogsearch>
             </general>
             <connection>
                 <proxy>1</proxy>
