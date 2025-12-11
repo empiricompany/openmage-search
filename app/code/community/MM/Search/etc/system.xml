@@ -54,6 +54,24 @@
                             ]]>
                             </comment>
                         </debug>
+                        <redirect_catalogsearch translate="label comment">
+                            <label>Redirect CatalogSearch to InstantSearch</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <enabled>1</enabled>
+                            </depends>
+                            <comment>
+                            <![CDATA[
+                                Redirect requests to <code>catalogsearch/result/?q=</code> to the InstantSearch overlay.<br />
+                                Useful when external sites link to the default OpenMage search URL.
+                            ]]>
+                            </comment>
+                        </redirect_catalogsearch>
                     </fields>
                 </general>
                 <connection translate="label">

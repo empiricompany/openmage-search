@@ -64,4 +64,38 @@ class MM_Search_Model_Observer
             Mage::logException($e);
         }
     }
+
+    /**
+     * Redirect catalogsearch/result to our InstantSearch overlay
+     *
+     * Intercepts requests to the default OpenMage search results page
+     * and redirects to the homepage with our hash-based search URL.
+     *
+     * @param Varien_Event_Observer $observer
+     */
+    public function redirectCatalogSearch(Varien_Event_Observer $observer): void
+    {
+        // Check if module is enabled
+        if (!$this->_helper->isEnabled()) {
+            return;
+        }
+
+        // Check if redirect is enabled in config
+        if (!$this->_helper->isRedirectCatalogSearchEnabled()) {
+            return;
+        }
+
+        $request = Mage::app()->getRequest();
+        $query = $request->getParam('q', '');
+        
+        // Build the hash URL for our InstantSearch
+        $baseUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
+        $hashUrl = rtrim($baseUrl, '/') . '/#search?q=' . urlencode($query);
+        
+        // Perform 302 (temporary) redirect
+        Mage::app()->getResponse()
+            ->setRedirect($hashUrl, 302)
+            ->sendResponse();
+        exit;
+    }
 }

@@ -50,6 +50,14 @@
                     </mm_search_add_layout_handle>
                 </observers>
             </controller_action_layout_load_before>
+            <controller_action_predispatch_catalogsearch_result_index>
+                <observers>
+                    <mm_search_redirect_catalogsearch>
+                        <class>mm_search/observer</class>
+                        <method>redirectCatalogSearch</method>
+                    </mm_search_redirect_catalogsearch>
+                </observers>
+            </controller_action_predispatch_catalogsearch_result_index>
         </events>
         <layout>
             <updates>
