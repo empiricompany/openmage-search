@@ -1,8 +1,8 @@
 import instantsearch from 'instantsearch.js';
 import {
-    searchBox, 
-    stats, 
-    sortBy, 
+    searchBox,
+    stats,
+    sortBy,
     currentRefinements,
     refinementList,
     toggleRefinement,
@@ -17,6 +17,7 @@ import { TemplateRegistry } from './TemplateRegistry.js';
 import { WidgetRegistry } from './WidgetRegistry.js';
 import { HitTemplate } from './HitTemplate.js';
 import { HitHelpers } from './HitHelpers.js';
+import { HashRouter } from './HashRouter.js';
 
 /**
  * Main InstantSearch Application
@@ -26,6 +27,7 @@ export class InstantSearchApp {
         this._config = config;
         this._search = null;
         this._started = false;
+        this._hashRouter = null;
         
         this.events = new EventBus();
         this.templates = new TemplateRegistry();
@@ -290,9 +292,15 @@ export class InstantSearchApp {
         const widgets = [];
         const hitTemplateInstance = this.templates.create('hit', this._config);
 
-        // SearchBox
+        // SearchBox - disable autofocus if auto-opening from URL
         const searchBoxConfig = this.widgets.getConfig('searchBox');
-        if (searchBoxConfig) widgets.push(searchBox(searchBoxConfig));
+        if (searchBoxConfig) {
+            // Check if auto-open from URL - disable autofocus to prevent dropdown showing
+            if (window._mmSearchAutoOpen === true) {
+                searchBoxConfig.autofocus = false;
+            }
+            widgets.push(searchBox(searchBoxConfig));
+        }
 
         // Stats
         const statsConfig = this.widgets.getConfig('stats');
@@ -335,6 +343,172 @@ export class InstantSearchApp {
         return widgets;
     }
 
+    /**
+     * Build routing configuration for InstantSearch
+     * Uses HashRouter for SEO-friendly URLs with hash
+     * @private
+     * @returns {Object} Routing configuration
+     */
+    _buildRoutingConfig() {
+        const collectionName = this._config.collectionName;
+        const facets = this._config.facetBy || [];
+        
+        // Create the HashRouter instance
+        this._hashRouter = new HashRouter({
+            hashPrefix: '#search',
+            writeDelay: 400,
+            cleanUrlOnDispose: false
+        });
+        
+        return {
+            router: this._hashRouter,
+            stateMapping: {
+                /**
+                 * Convert InstantSearch UI state to URL route state
+                 */
+                stateToRoute: (uiState) => {
+                    const indexState = uiState[collectionName] || {};
+                    const route = {};
+                    
+                    // Query
+                    if (indexState.query) {
+                        route.q = indexState.query;
+                    }
+                    
+                    // Sort - extract just the sort part (e.g., "price:asc" from "collection/sort/price:asc")
+                    if (indexState.sortBy && indexState.sortBy !== collectionName) {
+                        const sortMatch = indexState.sortBy.match(/\/sort\/(.+)$/);
+                        if (sortMatch) {
+                            route.sort = sortMatch[1]; // e.g., "price:asc"
+                        }
+                    }
+                    
+                    // Refinement lists (facets)
+                    if (indexState.refinementList) {
+                        Object.keys(indexState.refinementList).forEach(key => {
+                            const values = indexState.refinementList[key];
+                            if (values && values.length > 0) {
+                                route[key] = values;
+                            }
+                        });
+                    }
+                    
+                    // Range (price, etc.) - The range widget stores values as string "min:max"
+                    if (indexState.range) {
+                        Object.keys(indexState.range).forEach(key => {
+                            const rangeValue = indexState.range[key];
+                            if (rangeValue !== undefined && rangeValue !== null && rangeValue !== '') {
+                                // Format is "min:max" string
+                                if (typeof rangeValue === 'string') {
+                                    const parts = rangeValue.split(':');
+                                    if (parts[0] && parts[0] !== '') {
+                                        route[`${key}_min`] = parts[0];
+                                    }
+                                    if (parts[1] && parts[1] !== '') {
+                                        route[`${key}_max`] = parts[1];
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Toggle refinements
+                    if (indexState.toggle) {
+                        Object.keys(indexState.toggle).forEach(key => {
+                            if (indexState.toggle[key]) {
+                                route[key] = 'true';
+                            }
+                        });
+                    }
+                    
+                    return route;
+                },
+                
+                /**
+                 * Convert URL route state to InstantSearch UI state
+                 */
+                routeToState: (routeState) => {
+                    const refinementList = {};
+                    const rangeTemp = {}; // Temporary storage for min/max values
+                    const toggle = {};
+                    
+                    // Process route state to extract refinements
+                    Object.keys(routeState).forEach(key => {
+                        // Skip known keys
+                        if (['q', 'sort'].includes(key)) return;
+                        
+                        // Range min/max - store temporarily
+                        if (key.endsWith('_min')) {
+                            const facetKey = key.replace('_min', '');
+                            if (!rangeTemp[facetKey]) rangeTemp[facetKey] = { min: '', max: '' };
+                            rangeTemp[facetKey].min = routeState[key];
+                            return;
+                        }
+                        if (key.endsWith('_max')) {
+                            const facetKey = key.replace('_max', '');
+                            if (!rangeTemp[facetKey]) rangeTemp[facetKey] = { min: '', max: '' };
+                            rangeTemp[facetKey].max = routeState[key];
+                            return;
+                        }
+                        
+                        // Toggle values
+                        if (routeState[key] === 'true' || routeState[key] === true) {
+                            toggle[key] = true;
+                            return;
+                        }
+                        
+                        // Refinement lists (arrays)
+                        const value = routeState[key];
+                        if (Array.isArray(value)) {
+                            refinementList[key] = value;
+                        } else if (value) {
+                            refinementList[key] = [value];
+                        }
+                    });
+                    
+                    // Convert rangeTemp to range with "min:max" format
+                    const range = {};
+                    Object.keys(rangeTemp).forEach(key => {
+                        const { min, max } = rangeTemp[key];
+                        // Build "min:max" string format
+                        range[key] = `${min || ''}:${max || ''}`;
+                    });
+                    
+                    const state = {
+                        [collectionName]: {}
+                    };
+                    
+                    // Query
+                    if (routeState.q) {
+                        state[collectionName].query = routeState.q;
+                    }
+                    
+                    // Sort - rebuild the full sortBy value (e.g., "collection/sort/price:asc")
+                    if (routeState.sort) {
+                        state[collectionName].sortBy = `${collectionName}/sort/${routeState.sort}`;
+                    }
+                    
+                    // Refinements
+                    if (Object.keys(refinementList).length > 0) {
+                        state[collectionName].refinementList = refinementList;
+                    }
+                    
+                    // Range - use "min:max" string format
+                    if (Object.keys(range).length > 0) {
+                        state[collectionName].range = range;
+                    }
+                    
+                    // Toggle
+                    if (Object.keys(toggle).length > 0) {
+                        state[collectionName].toggle = toggle;
+                    }
+                    
+                    return state;
+                }
+            }
+        };
+    }
+
     init() {
         this.events.emit('beforeInit', this);
 
@@ -344,7 +518,7 @@ export class InstantSearchApp {
             indexName: this._config.collectionName,
             searchClient: adapter.searchClient,
             numberLocale: 'it',
-            routing: false
+            routing: this._buildRoutingConfig()
         });
 
         this._search.addWidgets(this._buildWidgets());
@@ -376,6 +550,14 @@ export class InstantSearchApp {
 
     getSearch() {
         return this._search;
+    }
+
+    /**
+     * Get the HashRouter instance
+     * @returns {HashRouter|null}
+     */
+    getHashRouter() {
+        return this._hashRouter;
     }
 }
 

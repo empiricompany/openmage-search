@@ -1,5 +1,6 @@
 /**
  * Manages search overlay UI interactions
+ * Handles URL routing integration for SEO-friendly search URLs
  */
 export class OverlayManager {
     constructor(app, options = {}) {
@@ -7,6 +8,7 @@ export class OverlayManager {
         this._overlay = null;
         this._mainInput = null;
         this._loadMoreObserver = null;
+        this._hashPrefix = options.hashPrefix || '#search';
         
         this._selectors = {
             overlay: options.overlaySelector || '#typesense-overlay',
@@ -15,6 +17,9 @@ export class OverlayManager {
             searchBoxInput: options.searchBoxInputSelector || '#typesense-searchbox input.ais-SearchBox-input',
             loadMoreBtn: '#typesense-hits .ais-InfiniteHits-loadMore:not(.ais-InfiniteHits-loadMore--disabled)'
         };
+        
+        // Bind methods
+        this._onHashChange = this._onHashChange.bind(this);
     }
 
     init() {
@@ -29,7 +34,20 @@ export class OverlayManager {
         this._bindEvents();
         this._setupInfiniteScrollOnRender();
         
-        this._openOverlay();
+        // Check if URL has search parameters - if so, open overlay automatically (without focus)
+        if (this._hasSearchParams()) {
+            console.log('[OverlayManager] URL has search params, opening overlay automatically');
+            this._openOverlay({ skipFocus: true });
+        }
+    }
+
+    /**
+     * Check if current URL hash contains search parameters
+     * @returns {boolean}
+     */
+    _hasSearchParams() {
+        const hash = window.location.hash;
+        return hash.startsWith(this._hashPrefix) && hash.includes('?');
     }
 
     _bindEvents() {
@@ -57,9 +75,38 @@ export class OverlayManager {
             e.preventDefault();
             return false;
         }, true);
+        
+        // Listen for hash changes to handle browser back/forward
+        window.addEventListener('hashchange', this._onHashChange);
     }
 
-    _openOverlay() {
+    /**
+     * Handle browser hash change events (back/forward navigation)
+     * @private
+     */
+    _onHashChange() {
+        if (this._hasSearchParams()) {
+            // URL has search params, open overlay if not already open (without focus)
+            if (!this._isActive()) {
+                this._openOverlay({ skipFocus: true });
+            }
+        } else {
+            // URL has no search params, close overlay if open
+            if (this._isActive()) {
+                this._closeOverlayWithoutClearingUrl();
+            }
+        }
+    }
+
+    /**
+     * Open the overlay
+     * @param {Object} options - Options
+     * @param {boolean} options.skipFocus - Skip focusing the search input (used for auto-open from URL)
+     * @private
+     */
+    _openOverlay(options = {}) {
+        const { skipFocus = false } = options;
+        
         this._overlay.classList.add('active');
         this._overlay.removeAttribute('x-cloak');
         document.body.style.overflow = 'hidden';
@@ -77,8 +124,26 @@ export class OverlayManager {
             }
         }
 
-        // Focus on the searchBox input inside the overlay
-        this._focusSearchBox();
+        // Focus on the searchBox input inside the overlay (unless skipFocus is true)
+        if (!skipFocus) {
+            this._focusSearchBox();
+        }
+    }
+
+    /**
+     * Open the overlay programmatically (public method)
+     * Checks window._mmSearchAutoOpen flag to skip focus on auto-open from URL
+     */
+    open() {
+        const skipFocus = window._mmSearchAutoOpen === true;
+        this._openOverlay({ skipFocus });
+    }
+
+    /**
+     * Close the overlay programmatically (public method)
+     */
+    close() {
+        this._closeOverlay();
     }
 
     _focusSearchBox() {
@@ -91,13 +156,49 @@ export class OverlayManager {
         }, 100);
     }
 
+    /**
+     * Close overlay and clear the URL hash
+     * @private
+     */
     _closeOverlay() {
+        this._overlay.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Clear the URL hash when closing the overlay
+        this._clearSearchUrl();
+    }
+
+    /**
+     * Close overlay without clearing URL (used for browser navigation)
+     * @private
+     */
+    _closeOverlayWithoutClearingUrl() {
         this._overlay.classList.remove('active');
         document.body.style.overflow = '';
     }
 
+    /**
+     * Clear the search URL hash
+     * @private
+     */
+    _clearSearchUrl() {
+        // Only clear if there's actually a search hash
+        if (this._hasSearchParams()) {
+            const url = window.location.href.split('#')[0];
+            window.history.replaceState(null, '', url);
+        }
+    }
+
     _isActive() {
         return this._overlay?.classList.contains('active');
+    }
+
+    /**
+     * Check if overlay is currently active (public method)
+     * @returns {boolean}
+     */
+    isActive() {
+        return this._isActive();
     }
 
     _setupInfiniteScrollOnRender() {
@@ -142,6 +243,18 @@ export class OverlayManager {
 
         this._loadMoreObserver.observe(loadMoreButton);
         loadMoreButton.dataset.observed = 'true';
+    }
+
+    /**
+     * Clean up event listeners
+     */
+    dispose() {
+        window.removeEventListener('hashchange', this._onHashChange);
+        
+        if (this._loadMoreObserver) {
+            this._loadMoreObserver.disconnect();
+            this._loadMoreObserver = null;
+        }
     }
 }
 

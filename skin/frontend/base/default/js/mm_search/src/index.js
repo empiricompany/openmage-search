@@ -18,6 +18,7 @@ import { InstantSearchApp } from './InstantSearchApp.js';
 import { OverlayManager } from './OverlayManager.js';
 import { InlineAutocomplete } from './InlineAutocomplete.js';
 import { SearchSuggestions } from './SearchSuggestions.js';
+import { HashRouter } from './HashRouter.js';
 
 /**
  * Factory function to create and initialize the search application
@@ -88,6 +89,9 @@ function initSearch(config, customizeFn = null) {
         setTimeout(initSuggestions, 50);
     });
     
+    // Expose overlay on window for loader compatibility
+    window.InstantSearchOverlayManager = overlay;
+    
     return {
         app,
         overlay,
@@ -105,6 +109,7 @@ window.MMSearch = {
     HitHelpers,
     SearchSuggestions,
     InlineAutocomplete,
+    HashRouter,
     
     // Registries
     TemplateRegistry,

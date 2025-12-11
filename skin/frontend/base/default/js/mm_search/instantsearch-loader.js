@@ -1,8 +1,10 @@
 /**
  * InstantSearch Lazy Loader
- * 
+ *
  * This script handles lazy loading of InstantSearch scripts when user
  * interacts with the search input for the first time.
+ *
+ * Also auto-loads if URL contains search parameters (#search?...)
  */
 (function() {
     'use strict';
@@ -11,6 +13,16 @@
     if (!searchInput) return;
 
     var scriptsLoaded = false;
+    var HASH_PREFIX = '#search';
+
+    /**
+     * Check if current URL hash contains search parameters
+     * @returns {boolean}
+     */
+    var hasSearchParams = function() {
+        var hash = window.location.hash;
+        return hash.indexOf(HASH_PREFIX) === 0 && hash.indexOf('?') > -1;
+    };
 
     // Prevent form submit on Enter key and close mobile keyboard
     searchInput.addEventListener('keydown', function(e) {
@@ -64,10 +76,14 @@
 
     /**
      * Load all lazy scripts and start the app
+     * @param {boolean} autoOpenFromUrl - Whether loading was triggered by URL params
      */
-    var loadScripts = function() {
+    var loadScripts = function(autoOpenFromUrl) {
         if (scriptsLoaded) return;
         scriptsLoaded = true;
+
+        // Store flag for later use in onScriptsLoaded
+        window._mmSearchAutoOpen = autoOpenFromUrl === true;
 
         activateLazyCss();
 
@@ -108,11 +124,29 @@
                 console.error('Error starting InstantSearch:', error);
             }
         }
+        
+        // Clean up
+        delete window._mmSearchAutoOpen;
     };
 
     // Bind trigger events
     var triggerEvents = ['focus', 'click'];
     triggerEvents.forEach(function(event) {
-        searchInput.addEventListener(event, loadScripts, { once: true });
+        searchInput.addEventListener(event, function() {
+            loadScripts(false);
+        }, { once: true });
     });
+
+    // Auto-load if URL has search parameters
+    if (hasSearchParams()) {
+        console.log('[MMSearch Loader] URL has search params, auto-loading scripts...');
+        // Use small delay to ensure DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                loadScripts(true);
+            });
+        } else {
+            loadScripts(true);
+        }
+    }
 })();
