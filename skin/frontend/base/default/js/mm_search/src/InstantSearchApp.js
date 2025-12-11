@@ -124,7 +124,7 @@ export class InstantSearchApp {
 
         // Default configuration for dynamic facets (can be overridden via facet:attributeName)
         this.widgets.register('_facetDefaults', {
-            operator: 'and',
+            operator: 'or',
             limit: 10,
             showMore: true,
             showMoreLimit: 100,
@@ -209,7 +209,6 @@ export class InstantSearchApp {
                 const priceConfig = Utils.deepMerge({
                     container: `#typesense-${facet}`,
                     attribute: facet,
-                    operator: 'and',
                     pips: false,
                     tooltips: {
                         format: (value) => '€' + Math.round(value).toLocaleString()
