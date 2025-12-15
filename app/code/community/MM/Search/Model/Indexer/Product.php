@@ -76,8 +76,13 @@ class MM_Search_Model_Indexer_Product
                     'eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED
                 ));
             
-            Mage::getSingleton('cataloginventory/stock')
-                ->addInStockFilterToCollection($this->_collection);
+            // Only filter out of stock products if configured to do so
+            /** @var MM_Search_Helper_Data $helper */
+            $helper = Mage::helper('mm_search');
+            if (!$helper->isIncludeOutOfStockEnabled($this->_storeId)) {
+                Mage::getSingleton('cataloginventory/stock')
+                    ->addInStockFilterToCollection($this->_collection);
+            }
 
             // Filter by specific product IDs if provided
             if (!empty($productIds)) {

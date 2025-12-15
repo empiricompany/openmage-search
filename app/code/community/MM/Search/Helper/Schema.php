@@ -152,12 +152,17 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 $this->_childProductsCache[$cacheKey] = $product->getTypeInstance(true)->getUsedProducts(null, $product);
             }
             
+            /** @var MM_Search_Helper_Data $helper */
+            $helper = Mage::helper('mm_search');
+            $includeOutOfStock = $helper->isIncludeOutOfStockEnabled($storeId);
+            
             $labels = [];
             foreach ($this->_childProductsCache[$cacheKey] as $childProduct) {
                 /**
                  * @var Mage_Catalog_Model_Product $childProduct
                  */
-                if (!$childProduct->getStockItem()->getIsInStock()) {
+                // Skip out of stock children unless include_out_of_stock is enabled
+                if (!$includeOutOfStock && !$childProduct->getStockItem()->getIsInStock()) {
                     continue;
                 }
                 $optionId = $childProduct->getData($code);

@@ -15,6 +15,7 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_INSTANTSEARCH_CACHE = 'mm_search/instantsearch/cache_lifetime';
     const XML_PATH_INSTANTSEARCH_EXHAUSTIVE_SEARCH = 'mm_search/instantsearch/exhaustive_search';
     const XML_PATH_REDIRECT_CATALOGSEARCH = 'mm_search/general/redirect_catalogsearch';
+    const XML_PATH_INCLUDE_OUT_OF_STOCK = 'mm_search/general/include_out_of_stock';
 
     /**
      * Check if module is enabled
@@ -186,6 +187,17 @@ class MM_Search_Helper_Data extends Mage_Core_Helper_Abstract
     public function isRedirectCatalogSearchEnabled($storeId = null)
     {
         return Mage::getStoreConfigFlag(self::XML_PATH_REDIRECT_CATALOGSEARCH, $storeId);
+    }
+
+    /**
+     * Check if out of stock products should be included in search results
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isIncludeOutOfStockEnabled($storeId = null)
+    {
+        return Mage::getStoreConfigFlag(self::XML_PATH_INCLUDE_OUT_OF_STOCK, $storeId);
     }
 
     /**
