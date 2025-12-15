@@ -401,6 +401,10 @@
         background-color: #0073e6;
         color: #fff;
     }
+    > span.out-of-stock {
+        background-color: #999;
+        color: #fff;
+    }
 }
 
 /* Stili per la paginazione */

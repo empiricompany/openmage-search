@@ -280,6 +280,14 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'searchable' => false,
                 'optional' => true,
             ),
+            'in_stock' => array(
+                'type' => 'bool',
+                'multiple' => false,
+                'filterable' => false,  // Not used as filter, only for badge display
+                'sortable' => false,
+                'searchable' => false,
+                'optional' => true,
+            ),
             'news_from_date' => array(
                 'type' => 'text',
                 'multiple' => false,
@@ -376,6 +384,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             'price' => (float) $product->getPrice(),
             'special_price' => (float) $product->getFinalPrice(),
             'has_discount' => (bool) ($product->getFinalPrice() < $product->getPrice()),
+            'in_stock' => (bool) $product->getStockItem()->getIsInStock(),
             'news_from_date' => $product->getData('news_from_date') ? (string) $product->getData('news_from_date') : '',
             'news_to_date' => $product->getData('news_to_date') ? (string) $product->getData('news_to_date') : '',
             'url_key' => (string) $product->getUrlKey(),

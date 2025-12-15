@@ -35,6 +35,16 @@ export class HitTemplate {
     /**
      * Override in custom templates
      */
+    renderOutOfStockBadge(hit, html) {
+        if (hit.in_stock === false) {
+            return html`<span class="out-of-stock">Non disponibile</span>`;
+        }
+        return null;
+    }
+
+    /**
+     * Override in custom templates
+     */
     renderPrice(hit, html) {
         if (!hit.price) return null;
 
@@ -70,6 +80,7 @@ export class HitTemplate {
 
         const newBadge = this.renderNewBadge(hit, html);
         const discountBadge = this.renderDiscountBadge(hit, html);
+        const outOfStockBadge = this.renderOutOfStockBadge(hit, html);
         const priceHtml = this.renderPrice(hit, html);
 
         return html`
@@ -79,7 +90,7 @@ export class HitTemplate {
                         onerror=${handleImageError} />
                 </a>
                 <div class="product-badges">
-                    ${newBadge || ''} ${discountBadge || ''}
+                    ${newBadge || ''} ${discountBadge || ''} ${outOfStockBadge || ''}
                 </div>
             </div>
             <div class="wrap-flex-sb">
