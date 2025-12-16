@@ -13,13 +13,14 @@
             query_by: 'sku,category_names,name,description,short_description',
             query_by_weights: '2,10,5,1,1',
             text_match_type: 'max_score',
+            prioritize_exact_match: true,
             infix: 'always,off,off,off,off',
             highlight_full_fields: '*',
             per_page: 96,
             facet_by: ['category_names', ...window.instantSearchConfig.facetBy].join(','),
             stopwords: "stopwords",
             exhaustive_search: window.instantSearchConfig.exhaustiveSearch,
-            drop_tokens_mode: "left_to_right",
+            drop_tokens_mode: "right_to_left",
         }
     });
 </script>
