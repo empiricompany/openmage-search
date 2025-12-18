@@ -117,6 +117,7 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
         $filterable = (bool) $attribute->getIsFilterableInSearch();
         $sortable = (bool) $attribute->getUsedForSortBy();
         $searchable = ($type === 'text');
+        $infix = $code === 'mpn' ? true : false;
         
         return array(
             'type' => $type,
@@ -124,8 +125,9 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             'filterable' => $filterable,
             'sortable' => ($sortable && !$multiple), // Only single-valued fields can be sortable
             'searchable' => $searchable,
-            'index' => $searchable,  // Index only searchable fields
-            'optional' => true        // All dynamic attributes are optional
+            'index' => $searchable,                 // Index only searchable fields
+            'infix' => $infix,                      // Enable infix search only for 'npm' attribute
+            'optional' => true                      // All dynamic attributes are optional
         );
     }
 
@@ -252,6 +254,8 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'sortable' => true,
                 'searchable' => true,
                 'index' => true,
+                'locale' => Mage::app()->getLocale()->getLocaleCode(),
+                'stem' => true,
                 'optional' => false,
             ),
             'price' => array(
