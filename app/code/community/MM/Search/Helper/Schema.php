@@ -140,16 +140,24 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
         $searchable = ($type === 'text');
         $infix = $code === 'mpn' ? true : false;
         
-        return array(
+        $field = array(
             'type' => $type,
             'multiple' => $multiple,
             'filterable' => $filterable,
             'sortable' => ($sortable && !$multiple), // Only single-valued fields can be sortable
             'searchable' => $searchable,
             'index' => $searchable,                 // Index only searchable fields
-            'infix' => $infix,                      // Enable infix search only for 'npm' attribute
+            'infix' => $infix,                      // Enable infix search only for 'mpn' attribute
             'optional' => true                      // All dynamic attributes are optional
         );
+        
+        // Always set stem and locale for 'name' field
+        if ($code === 'name') {
+            $field['stem'] = true;
+            $field['locale'] = Mage::app()->getLocale()->getLocaleCode();
+        }
+        
+        return $field;
     }
 
     /**
