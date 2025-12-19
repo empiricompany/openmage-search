@@ -432,6 +432,7 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
                 'destination' => array(
                     'collection' => $popularCollectionName
                 ),
+                'expand_query' => true,
                 'limit' => self::ANALYTICS_LIMIT
             )
         );
@@ -460,6 +461,7 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
                 'destination' => array(
                     'collection' => $noHitsCollectionName
                 ),
+                'expand_query' => true,
                 'limit' => self::ANALYTICS_LIMIT
             )
         );
