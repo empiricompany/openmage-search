@@ -131,6 +131,21 @@ export class SearchSuggestions {
                 }
             }
         });
+        
+        // Handle reset button click - behave like clearing input manually
+        const resetButton = this._container?.querySelector('.ais-SearchBox-reset');
+        if (resetButton) {
+            resetButton.addEventListener('mousedown', (e) => {
+                // Prevent blur from hiding dropdown before we can show it
+                e.preventDefault();
+            });
+            resetButton.addEventListener('click', () => {
+                // Reset and show suggestions like when input is cleared manually
+                this._currentQuery = '';
+                this._renderAll();
+                this._input?.focus();
+            });
+        }
     }
 
     /**
