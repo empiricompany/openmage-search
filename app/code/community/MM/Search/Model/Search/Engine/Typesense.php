@@ -85,6 +85,21 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
                 $field['index'] = (bool)$props['index'];
             }
             
+            // Add stem flag if specified (for stemming support)
+            if (isset($props['stem']) && $props['stem']) {
+                $field['stem'] = true;
+            }
+            
+            // Add locale if specified (for language-specific tokenization and stemming)
+            if (isset($props['locale']) && !empty($props['locale'])) {
+                // Convert Magento locale format (e.g., 'it_IT') to ISO 639-1 (e.g., 'it')
+                $locale = $props['locale'];
+                if (strpos($locale, '_') !== false) {
+                    $locale = substr($locale, 0, strpos($locale, '_'));
+                }
+                $field['locale'] = $locale;
+            }
+            
             $typesenseFields[] = $field;
         }
         

@@ -151,12 +151,6 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             'optional' => true                      // All dynamic attributes are optional
         );
         
-        // Always set stem and locale for 'name' field
-        if ($code === 'name') {
-            $field['stem'] = true;
-            $field['locale'] = Mage::app()->getLocale()->getLocaleCode();
-        }
-        
         return $field;
     }
 
