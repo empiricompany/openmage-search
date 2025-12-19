@@ -53,12 +53,30 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
     {
         // Add attribute data
         $attributeCollection = $this->getSearchableAttributes();
+        
+        // Collect meta values from facet attributes (select, multiselect, or text input types)
+        $metaValues = [];
 
         foreach ($attributeCollection as $attribute) {
             $code = $attribute->getAttributeCode();
             // Set store on attribute for correct option translations
             $attribute->setStoreId($storeId);
-            $productData[$code] = $this->getAttributeValue($product, $attribute, $storeId);
+            $value = $this->getAttributeValue($product, $attribute, $storeId);
+            $productData[$code] = $value;
+            
+            // Collect values for meta field based on attribute properties
+            // Include select, multiselect, or text input types that are facets
+            $frontendInput = $attribute->getFrontendInput();
+            $isTextInput = in_array($frontendInput, ['select', 'multiselect', 'text']);
+            $isFacet = (bool) $attribute->getIsFilterableInSearch();
+            
+            if ($isTextInput && $isFacet && !empty($value)) {
+                if (is_array($value)) {
+                    $metaValues = array_merge($metaValues, $value);
+                } else {
+                    $metaValues[] = (string) $value;
+                }
+            }
         }
 
         // Override with base data
@@ -66,6 +84,9 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
             $productData,
             $this->getBaseProductData($product, $storeId)
         );
+        
+        // Add meta field with combined facet values (string[] only)
+        $productData['meta'] = implode(' ', array_unique($metaValues));
 
         return $productData;
     }
@@ -355,6 +376,15 @@ class MM_Search_Helper_Schema extends Mage_Core_Helper_Abstract
                 'filterable' => false,
                 'sortable' => false,
                 'searchable' => false,
+                'optional' => true,
+            ),
+            'meta' => array(
+                'type' => 'text',
+                'multiple' => false,
+                'filterable' => false,
+                'sortable' => false,
+                'searchable' => true,
+                'index' => true,
                 'optional' => true,
             ),
         );
