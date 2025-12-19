@@ -89,6 +89,23 @@ function initSearch(config, customizeFn = null) {
         setTimeout(initSuggestions, 50);
     });
     
+    // Track query changes and scroll to top when query changes
+    let lastQuery = '';
+    app.events.on('render', () => {
+        const search = app.getSearch();
+        if (!search) return;
+        
+        const currentQuery = search.helper?.state?.query || '';
+        if (currentQuery !== lastQuery) {
+            lastQuery = currentQuery;
+            // Scroll overlay to top when query changes
+            const overlayElement = document.querySelector('#typesense-overlay');
+            if (overlayElement) {
+                overlayElement.scrollTop = 0;
+            }
+        }
+    });
+    
     // Expose overlay on window for loader compatibility
     window.InstantSearchOverlayManager = overlay;
     
