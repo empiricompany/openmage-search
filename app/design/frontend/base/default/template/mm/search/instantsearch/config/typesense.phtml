@@ -15,13 +15,13 @@
             text_match_type: 'max_score',
             prioritize_exact_match: true,
             drop_tokens_threshold: 1,
+            drop_tokens_mode: "right_to_left",
             infix: 'off,off,off,fallback,off,off',
             highlight_full_fields: '*',
             per_page: 96,
             facet_by: ['category_names', ...window.instantSearchConfig.facetBy].join(','),
             stopwords: "stopwords",
             exhaustive_search: window.instantSearchConfig.exhaustiveSearch,
-            drop_tokens_mode: "right_to_left",
         }
     });
 </script>
