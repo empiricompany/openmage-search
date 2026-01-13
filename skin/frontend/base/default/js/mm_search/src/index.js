@@ -19,6 +19,7 @@ import { OverlayManager } from './OverlayManager.js';
 import { InlineAutocomplete } from './InlineAutocomplete.js';
 import { SearchSuggestions } from './SearchSuggestions.js';
 import { HashRouter } from './HashRouter.js';
+import { GA4Tracking } from './GA4Tracking.js';
 
 /**
  * Factory function to create and initialize the search application
@@ -41,6 +42,10 @@ function initSearch(config, customizeFn = null) {
     }
     
     app.init();
+    
+    // Initialize GA4 tracking
+    const ga4Tracking = new GA4Tracking(config);
+    ga4Tracking.init(app.events);
     
     const overlay = new OverlayManager(app);
     overlay.init();
@@ -76,6 +81,13 @@ function initSearch(config, customizeFn = null) {
                 const currentQuery = searchBoxInput.value.trim();
                 if (currentQuery.length >= 2) {
                     searchSuggestions.addRecentSearch(currentQuery);
+                    // Track search event for GA4
+                    const search = app.getSearch();
+                    const resultsCount = search?.helper?.lastResults?.nbHits || 0;
+                    app.events.emit('search:submitted', {
+                        query: currentQuery,
+                        resultsCount: resultsCount
+                    });
                 }
             }
         });
@@ -91,6 +103,9 @@ function initSearch(config, customizeFn = null) {
     
     // Track query changes and scroll to top when query changes
     let lastQuery = '';
+    let searchDebounceTimer = null;
+    const SEARCH_DEBOUNCE_MS = 1500; // Track search after 1.5s of inactivity
+    
     app.events.on('render', () => {
         const search = app.getSearch();
         if (!search) return;
@@ -98,10 +113,74 @@ function initSearch(config, customizeFn = null) {
         const currentQuery = search.helper?.state?.query || '';
         if (currentQuery !== lastQuery) {
             lastQuery = currentQuery;
+            
             // Scroll overlay to top when query changes
             const overlayElement = document.querySelector('#typesense-overlay');
             if (overlayElement) {
                 overlayElement.scrollTop = 0;
+            }
+            
+            // Debounce search tracking - track after user stops typing
+            clearTimeout(searchDebounceTimer);
+            if (currentQuery.length >= 2) {
+                searchDebounceTimer = setTimeout(() => {
+                    const resultsCount = search?.helper?.lastResults?.nbHits || 0;
+                    app.events.emit('search:submitted', {
+                        query: currentQuery,
+                        resultsCount: resultsCount
+                    });
+                }, SEARCH_DEBOUNCE_MS);
+            }
+        }
+    });
+
+    // Track product clicks using event delegation
+    document.addEventListener('click', (e) => {
+        const item = e.target.closest('.ais-InfiniteHits-item');
+        const link = e.target.closest('a');
+        
+        if (item && link) {
+            const productUrl = link.getAttribute('href');
+            const search = app.getSearch();
+            
+            if (search && search.helper?.lastResults?.hits) {
+                const hits = search.helper.lastResults.hits;
+                // Find hit by matching the item index
+                const items = document.querySelectorAll('.ais-InfiniteHits-item');
+                const itemIndex = Array.from(items).indexOf(item);
+                const hit = hits[itemIndex];
+                
+                if (hit) {
+                    const position = itemIndex + 1;
+                    
+                    // If tracking is enabled, prevent default and wait for callback
+                    if (ga4Tracking && ga4Tracking.isEnabled()) {
+                        e.preventDefault();
+                        
+                        let handled = false;
+                        const navigate = () => {
+                            if (!handled) {
+                                handled = true;
+                                window.location.href = productUrl;
+                            }
+                        };
+                        
+                        app.events.emit('search:result_click', {
+                            hit: hit,
+                            position: position,
+                            onComplete: navigate
+                        });
+                        
+                        // Safety timeout slightly longer than GA4 timeout
+                        setTimeout(navigate, 1200);
+                    } else {
+                        // Just emit event
+                        app.events.emit('search:result_click', {
+                            hit: hit,
+                            position: position
+                        });
+                    }
+                }
             }
         }
     });
@@ -113,7 +192,8 @@ function initSearch(config, customizeFn = null) {
         app,
         overlay,
         getSearchSuggestions: () => searchSuggestions,
-        getInlineAutocomplete: () => inlineAutocomplete
+        getInlineAutocomplete: () => inlineAutocomplete,
+        getGA4Tracking: () => ga4Tracking
     };
 }
 
@@ -127,6 +207,7 @@ window.MMSearch = {
     SearchSuggestions,
     InlineAutocomplete,
     HashRouter,
+    GA4Tracking,
     
     // Registries
     TemplateRegistry,

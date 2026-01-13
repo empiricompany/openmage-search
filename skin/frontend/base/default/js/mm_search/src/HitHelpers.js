@@ -25,13 +25,24 @@ export const HitHelpers = {
     },
 
     /**
-     * Get product URL from hit
+     * Get product URL from hit with UTM parameters
+     * @param {Object} hit - The hit object from search results
      */
     getProductUrl(hit) {
-        if (hit.url_key) {
-            return `/${hit.url_key}.html`;
+        if (!hit.request_path) {
+            return '#';
         }
-        return '#';
+        
+        let url = `/${hit.request_path}`;
+        
+        // Add UTM parameters for tracking
+        const params = new URLSearchParams();
+        //params.append('utm_source', 'internal_search');
+        params.append('utm_medium', 'search');
+        params.append('utm_campaign', 'site_search');
+        url += `?${params.toString()}`;
+        
+        return url;
     },
 
     /**
