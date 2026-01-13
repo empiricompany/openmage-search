@@ -34,6 +34,10 @@ export const HitHelpers = {
         }
         
         let url = `/${hit.request_path}`;
+        if (window.instantSearchConfig?.useStoreCode) {
+            const storeCode = window.instantSearchConfig?.storeCode;
+            url = `/${storeCode}/${url}`;
+        }
         
         // Add UTM parameters for tracking
         const params = new URLSearchParams();
