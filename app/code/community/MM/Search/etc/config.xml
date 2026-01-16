@@ -58,6 +58,14 @@
                     </mm_search_redirect_catalogsearch>
                 </observers>
             </controller_action_predispatch_catalogsearch_result_index>
+            <googleanalytics_ga4_send_data_before>
+                <observers>
+                    <mm_search_add_search_attribution>
+                        <class>mm_search/observer_ga4</class>
+                        <method>addSearchListName</method>
+                    </mm_search_add_search_attribution>
+                </observers>
+            </googleanalytics_ga4_send_data_before>
         </events>
         <layout>
             <updates>

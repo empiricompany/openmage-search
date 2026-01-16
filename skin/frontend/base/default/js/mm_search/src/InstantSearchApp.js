@@ -28,15 +28,14 @@ export class InstantSearchApp {
         this._search = null;
         this._started = false;
         this._hashRouter = null;
+        this.currentHits = [];
         
         this.events = new EventBus();
         this.templates = new TemplateRegistry();
         this.widgets = new WidgetRegistry();
         
-        // Register default hit template
         this.templates.register('hit', HitTemplate);
         
-        // Register default widget configs
         this._registerDefaultWidgets();
     }
 
@@ -333,6 +332,10 @@ export class InstantSearchApp {
         if (hitsConfig) {
             widgets.push(infiniteHits({
                 ...hitsConfig,
+                transformItems: (items) => {
+                    this.currentHits = items;
+                    return items;
+                },
                 templates: {
                     ...hitsConfig.templates,
                     item: (hit, opts) => hitTemplateInstance.render(hit, opts)

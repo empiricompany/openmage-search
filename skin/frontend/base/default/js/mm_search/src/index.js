@@ -141,11 +141,9 @@ function initSearch(config, customizeFn = null) {
         
         if (item && link) {
             const productUrl = link.getAttribute('href');
-            const search = app.getSearch();
+            const hits = app.currentHits || [];
             
-            if (search && search.helper?.lastResults?.hits) {
-                const hits = search.helper.lastResults.hits;
-                // Find hit by matching the item index
+            if (hits.length > 0) {
                 const items = document.querySelectorAll('.ais-InfiniteHits-item');
                 const itemIndex = Array.from(items).indexOf(item);
                 const hit = hits[itemIndex];
@@ -153,7 +151,6 @@ function initSearch(config, customizeFn = null) {
                 if (hit) {
                     const position = itemIndex + 1;
                     
-                    // If tracking is enabled, prevent default and wait for callback
                     if (ga4Tracking && ga4Tracking.isEnabled()) {
                         e.preventDefault();
                         
@@ -171,10 +168,8 @@ function initSearch(config, customizeFn = null) {
                             onComplete: navigate
                         });
                         
-                        // Safety timeout slightly longer than GA4 timeout
                         setTimeout(navigate, 1200);
                     } else {
-                        // Just emit event
                         app.events.emit('search:result_click', {
                             hit: hit,
                             position: position
