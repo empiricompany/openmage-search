@@ -69,10 +69,47 @@ export const HitHelpers = {
     },
 
     /**
-     * Format price with currency
+     * Format price with currency using Magento's price format configuration
      */
-    formatPrice(price, currency = '€') {
-        return `${price} ${currency}`;
+    formatPrice(price, currency = null) {
+        if (!price && price !== 0) return '';
+        
+        const numPrice = parseFloat(price);
+        if (isNaN(numPrice)) return `${price}`;
+        
+        // Get price format configuration from instantSearchConfig
+        const config = window.instantSearchConfig?.priceFormat;
+        
+        if (!config) {
+            // Fallback to simple format if config not available
+            return `${numPrice.toFixed(2)} ${currency || '€'}`;
+        }
+        
+        // Round to required precision
+        const precision = config.requiredPrecision || config.precision || 2;
+        const rounded = numPrice.toFixed(precision);
+        
+        // Split into integer and decimal parts
+        const [integerPart, decimalPart] = rounded.split('.');
+        
+        // Add thousand separators
+        let formattedInteger = integerPart;
+        if (config.groupSymbol && config.groupLength) {
+            const groupLength = config.groupLength || 3;
+            const regex = new RegExp(`\\B(?=(\\d{${groupLength}})+(?!\\d))`, 'g');
+            formattedInteger = integerPart.replace(regex, config.groupSymbol);
+        }
+        
+        // Combine with decimal symbol
+        const formattedPrice = decimalPart
+            ? `${formattedInteger}${config.decimalSymbol}${decimalPart}`
+            : formattedInteger;
+        
+        // Apply pattern (e.g., "%s €" or "€ %s")
+        const currencySymbol = currency || config.currencySymbol || '€';
+        const pattern = config.pattern || '%s %s';
+        
+        return pattern.replace('%s', formattedPrice).replace('%s', currencySymbol).trim();
     },
 
     /**

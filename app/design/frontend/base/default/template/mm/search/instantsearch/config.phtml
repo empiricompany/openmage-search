@@ -2,6 +2,11 @@
 /** @var MM_Search_Block_Instantsearch $this */
 /** @var MM_Search_Helper_Data $_helper */
 $_helper = $this->helper('mm_search');
+
+// Get currency format from Magento
+$currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
+$currency = Mage::app()->getLocale()->currency($currencyCode);
+$priceFormat = Mage::app()->getLocale()->getJsPriceFormat();
 ?>
 <script type="text/mm-instantsearch-lazy">
     window.instantSearchConfig = {
@@ -26,5 +31,15 @@ $_helper = $this->helper('mm_search');
         cacheSearchResultsForSeconds: <?php echo $_helper->getCacheLifetime() ?>,
         exhaustiveSearch: <?php echo $_helper->isExhaustiveSearchEnabled() ? 'true' : 'false' ?>,
         placeholderUrl: '<?php echo $this->getSkinUrl('images/catalog/product/placeholder/image.jpg') ?>',
+        priceFormat: {
+            pattern: '<?php echo $priceFormat['pattern'] ?>',
+            precision: <?php echo (int)$priceFormat['precision'] ?>,
+            requiredPrecision: <?php echo (int)$priceFormat['requiredPrecision'] ?>,
+            decimalSymbol: '<?php echo $priceFormat['decimalSymbol'] ?>',
+            groupSymbol: '<?php echo $priceFormat['groupSymbol'] ?>',
+            groupLength: <?php echo (int)$priceFormat['groupLength'] ?>,
+            currencySymbol: '<?php echo $currency->getSymbol() ?>',
+            currencyCode: '<?php echo $currencyCode ?>'
+        }
     };
 </script>
