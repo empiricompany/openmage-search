@@ -32,7 +32,7 @@ class MM_Search_Model_Search_Engine_Typesense extends MM_Search_Model_Search_Eng
             'api_key' => $apiKey,
             'nodes' => [[
                 'host' => $host,
-                'port' => (int)$port,
+                'port' => $port ? (int)$port : ($protocol === 'https' ? 443 : 80),
                 'protocol' => $protocol
             ]],
             'connection_timeout_seconds' => 5
